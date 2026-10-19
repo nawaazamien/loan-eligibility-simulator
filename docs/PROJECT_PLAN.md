@@ -76,7 +76,7 @@ The container acceptance criteria are verified in CI, not on the local machine.
 **Validation:** unit and component tests for field wiring, slider sync, example and reset behaviour, and the disclosure; Playwright layout and overflow checks for 320, 360 and 1280 px; screenshot comparison against the reference renders; lint, typecheck and build.
 **Depends on:** Phase 0.
 
-**Status:** complete locally (see the validation record). CI results are recorded below the record.
+**Status:** complete. Verified locally and in CI; see the validation record.
 
 **Validation record (2026-10-19)**
 
@@ -89,6 +89,14 @@ _Where_: a fresh clone at `D:\Projects\loan-eligibility-simulator-phase1` (Windo
 | `npm run test:e2e` (production preview)                      | **Passed**: 25 passed, 2 skipped. The shell (2 tests) and form (6 tests) specs run at 1280, 360 and 320 px. A breakpoint test at 759/760 px runs in the desktop project only: it sets its own viewport, so it is skipped in the two mobile projects                                                                                                                                          |
 | Design comparison                                            | **Done against rendered reference screens**: `LoanSimulator.dc.html` rendered through its own preview runtime in headless Chromium, compared with the production build at 1280 and 360 px, in the initial state and after "Use example values" with the assumptions expanded. The implementation was also captured at 320 and 760 px. See [validation/phase-1](validation/phase-1/README.md) |
 | Keyboard pass (Chromium, 1280 px)                            | **Passed**: Tab order is Use example values → four amount fields → slider → term group (one stop) → Reset → assumptions toggle. The disabled Calculate button is skipped. Focus is visible on every stop, including the selected term cell (D-022)                                                                                                                                           |
+
+_CI run_: GitHub Actions [run 39297094657](https://github.com/nawaazamien/loan-eligibility-simulator/actions/runs/39297094657) on commit `44e3a43` (ubuntu-latest). Every job passed.
+
+| Job                                 | Result                                                                                                                                                                                   |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Static checks, unit tests and build | **Passed**                                                                                                                                                                               |
+| Browser tests (production preview)  | **Passed**: 25 passed, 2 skipped                                                                                                                                                         |
+| Docker image build and smoke test   | **Passed**: image build, uid 101, assets, `no-cache` index, `immutable` assets, CSP and security headers, 404, and the browser suite against the running container: 25 passed, 2 skipped |
 
 **Acceptance criteria**
 
