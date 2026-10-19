@@ -79,8 +79,33 @@ jobs:
           for asset in $(grep -oE '/assets/[^"]+' index.html); do
             curl -fsS -o /dev/null "http://127.0.0.1:8080${asset}"
           done
-          curl -fsSI http://127.0.0.1:8080/ | grep -qi '^cache-control: no-cache'
+          curl -fsSI http://127.0.0.1:8080/ > index.headers
+          grep -qi '^cache-control: no-cache' index.headers
+          grep -qi "^content-security-policy: default-src 'self'" index.headers
+          grep -qi '^x-content-type-options: nosniff' index.headers
+          grep -qi '^x-frame-options: DENY' index.headers
+          grep -qi '^referrer-policy: no-referrer' index.headers
+          asset="$(grep -oE '/assets/[^"]+' index.html | head -n 1)"
+          curl -fsSI "http://127.0.0.1:8080${asset}" | grep -qi '^cache-control: public, max-age=31536000, immutable'
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/does-not-exist)" = "404"
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Playwright against the container
+        run: npm run test:e2e
+        env:
+          E2E_BASE_URL: http://127.0.0.1:8080
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-container
+          path: playwright-report
+          retention-days: 7
       - name: Container logs
         if: always()
         run: docker logs app || true

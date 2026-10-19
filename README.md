@@ -8,13 +8,13 @@ Built as a recruitment assignment for a Front-End Software Engineer role. "Tally
 
 ## Status
 
-| Phase | Scope                                                        | State    |
-| ----- | ------------------------------------------------------------ | -------- |
-| 0     | Design import, tooling, container, application shell         | **Done** |
-| 1     | Responsive form and results UI matching the design           | Planned  |
-| 2     | Simulation model, validation, result and stale states, reset | Planned  |
-| 3     | Accessibility and responsive refinement, test coverage       | Planned  |
-| 4     | Production verification and submission readiness             | Planned  |
+| Phase | Scope                                                        | State                                                                                                                                                                         |
+| ----- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | Design import, tooling, container, application shell         | Built; container validation pending ([record](docs/PROJECT_PLAN.md#phase-0--design-import-foundation-tooling-container-application-shell-built-container-validation-pending)) |
+| 1     | Responsive form and results UI matching the design           | Planned                                                                                                                                                                       |
+| 2     | Simulation model, validation, result and stale states, reset | Planned                                                                                                                                                                       |
+| 3     | Accessibility and responsive refinement, test coverage       | Planned                                                                                                                                                                       |
+| 4     | Production verification and submission readiness             | Planned                                                                                                                                                                       |
 
 **What works now:** the page shell (header with Demo tag, title and intro, the two-panel responsive layout with the design's "blueprint" frames, footer), self-hosted fonts, design tokens, the test and lint toolchain, the Docker image and CI.
 **Not built yet:** the form and the calculation. The two panels show clearly labelled placeholders. No figures are calculated or shown. See [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md).

@@ -20,7 +20,7 @@ Work proceeds one phase at a time: implement, validate, commit, report, stop.
 
 ## Phases
 
-### Phase 0 — Design import, foundation, tooling, container, application shell ✅
+### Phase 0 — Design import, foundation, tooling, container, application shell (built; container validation pending)
 
 **Scope:** import and document the design; create AGENTS.md, this plan, DESIGN_HANDOFF, DECISIONS and SIMULATION_MODEL; set up the Vite + React + strict TS project with lint, format, unit and browser tests; add a multi-stage Dockerfile with an nginx config; add CI; write an initial README. Build the shell: header, intro, footer, tokens, fonts, and the two framed panels with placeholders.
 
@@ -35,6 +35,22 @@ Work proceeds one phase at a time: implement, validate, commit, report, stop.
 
 **Validation:** `npm ci`, `npm run check`, `npm run test:e2e` (preview and container), Docker build and run smoke test.
 **Depends on:** design access.
+
+**Validation record (2026-10-19, commit `f65b95a`, Windows 11, Node 24.18.0, npm 11.16.0)**
+
+Run in a fresh `git clone` of the repository, because the working copy's `node_modules` was locked by a running dev server.
+
+| Check                                                        | Result                                                                                                                                                                                                 |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm ci`                                                     | **Passed**: 238 packages, 0 vulnerabilities                                                                                                                                                            |
+| `npm run check` (typecheck, lint, format:check, test, build) | **Passed**: Vitest 4/4 tests in 1 file; build 222.51 kB JS (69.72 kB gzip), 5.39 kB CSS                                                                                                                |
+| `npm run test:e2e` (production preview)                      | **Passed**: 6/6 (2 tests × 1280, 360 and 320 px). The first attempt failed only because Playwright's Chromium was not installed locally; after `npx playwright install chromium` all passed            |
+| `npm run dev`                                                | **Passed**: served the page and transformed `src/main.tsx` (HTTP 200)                                                                                                                                  |
+| `npm run preview`                                            | **Passed**: used as the server for the e2e run above                                                                                                                                                   |
+| Docker build, run, headers, e2e against the container        | **Blocked by the environment**: the local Docker Desktop engine did not respond (`docker version` / `docker info` timed out on both contexts). Delegated to the CI `docker` job, which has not run yet |
+| GitHub Actions CI                                            | **Not run**: the public repository exists, but the push was rejected because the GitHub CLI token lacks the `workflow` scope                                                                           |
+
+Phase 0 is complete only once the CI `docker` job passes (image build, non-root user, assets, `no-cache` index, `immutable` assets, CSP and security headers, 404, and the browser suite against the container).
 
 ### Phase 1 — Responsive interface matching the design
 
