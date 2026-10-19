@@ -1,4 +1,4 @@
-import { centsToInputText, formatAmountOnBlur, formatRand } from './format';
+import { centsToInputText, formatAmountOnBlur, formatCents, formatRand } from './format';
 
 describe('centsToInputText', () => {
   it.each([
@@ -42,5 +42,22 @@ describe('formatRand', () => {
 
   it('uses a true minus sign for negative amounts', () => {
     expect(formatRand(-398)).toBe('−R398');
+  });
+});
+
+describe('formatCents', () => {
+  it('shows repayments to the cent', () => {
+    expect(formatCents(187_888, { withCents: true })).toBe('R1 878.88');
+    expect(formatCents(16_140, { withCents: true })).toBe('R161.40');
+    expect(formatCents(1, { withCents: true })).toBe('R0.01');
+  });
+
+  it('rounds other figures half-up to whole rand on the magnitude', () => {
+    expect(formatCents(927_112)).toBe('R9 271');
+    expect(formatCents(39_850)).toBe('R399');
+    expect(formatCents(39_849)).toBe('R398');
+    expect(formatCents(-39_812)).toBe('−R398');
+    expect(formatCents(-39_850)).toBe('−R399');
+    expect(formatCents(0)).toBe('R0');
   });
 });

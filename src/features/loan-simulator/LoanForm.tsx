@@ -1,14 +1,16 @@
 import { Info } from 'lucide-react';
-import { useId, useRef, type Dispatch } from 'react';
+import { useId, useRef, type Dispatch, type Ref } from 'react';
 
 import { Button } from '../../components/Button';
 import { FrameCorners } from '../../components/Frame';
 import frameStyles from '../../components/Frame.module.css';
 import { cx } from '../../styles/cx';
 import { CurrencyField } from './CurrencyField';
+import { ErrorSummary } from './ErrorSummary';
 import type { AmountField, FormAction, FormState, FormStatus } from './formState';
 import styles from './LoanForm.module.css';
 import { LoanAmountField } from './LoanAmountField';
+import { AMOUNT_FIELDS } from './model/validate';
 import { TermSelector } from './TermSelector';
 
 type BudgetField = Exclude<AmountField, 'loan'>;
@@ -32,24 +34,23 @@ const BUDGET_FIELDS: readonly { field: BudgetField; label: string; hint: string 
   },
 ];
 
-/**
- * Phase 1 wording. The design's example message continues "Select Calculate estimate to
- * see the result.", which would point at a disabled button until Phase 2 (DECISIONS D-020).
- */
+/** Verbatim from the design (HANDOFF §5). */
 const STATUS_TEXT: Record<Exclude<FormStatus, null>, string> = {
-  example: 'Example values added.',
+  example: 'Example values added. Select Calculate estimate to see the result.',
   reset: 'Form reset. Enter your details to calculate a new estimate.',
 };
 
 interface LoanFormProps {
   state: FormState;
   dispatch: Dispatch<FormAction>;
+  /** Whether the estimate shown no longer matches these inputs. */
+  isStale: boolean;
+  summaryRef: Ref<HTMLDivElement>;
 }
 
-export function LoanForm({ state, dispatch }: LoanFormProps) {
+export function LoanForm({ state, dispatch, isStale, summaryRef }: LoanFormProps) {
   const idBase = useId();
   const headingId = `${idBase}-heading`;
-  const calculateNoteId = `${idBase}-calculate-note`;
   const incomeRef = useRef<HTMLInputElement>(null);
 
   const fieldId = (field: AmountField) => `${idBase}-${field}`;
@@ -60,13 +61,18 @@ export function LoanForm({ state, dispatch }: LoanFormProps) {
     dispatch({ type: 'blur', field });
   };
 
+  const summaryErrors = AMOUNT_FIELDS.flatMap((field) => {
+    const message = state.errors[field];
+    return message ? [{ fieldId: fieldId(field), message }] : [];
+  });
+
   return (
     <form
       noValidate
       aria-labelledby={headingId}
       onSubmit={(event) => {
-        // Calculation arrives in Phase 2; the submit button is disabled until then.
         event.preventDefault();
+        dispatch({ type: 'submit' });
       }}
       className={cx(frameStyles.frame, styles.form)}
     >
@@ -85,6 +91,10 @@ export function LoanForm({ state, dispatch }: LoanFormProps) {
         </Button>
       </div>
 
+      {state.showSummary && summaryErrors.length > 0 && (
+        <ErrorSummary ref={summaryRef} errors={summaryErrors} />
+      )}
+
       <fieldset className={styles.group}>
         <legend className={styles.legend}>Your monthly budget</legend>
         {BUDGET_FIELDS.map(({ field, label, hint }) => (
@@ -95,6 +105,7 @@ export function LoanForm({ state, dispatch }: LoanFormProps) {
             label={label}
             hint={hint}
             value={state.values[field]}
+            error={state.errors[field]}
             onChange={edit(field)}
             onBlur={blur(field)}
             {...(field === 'income' ? { inputRef: incomeRef } : {})}
@@ -107,6 +118,7 @@ export function LoanForm({ state, dispatch }: LoanFormProps) {
         <LoanAmountField
           id={fieldId('loan')}
           value={state.values.loan}
+          error={state.errors.loan}
           sliderValue={state.loanSlider}
           onChange={edit('loan')}
           onBlur={blur('loan')}
@@ -124,13 +136,7 @@ export function LoanForm({ state, dispatch }: LoanFormProps) {
 
       <div className={styles.actions}>
         <div className={styles.buttons}>
-          <Button
-            variant="primary"
-            type="submit"
-            disabled
-            aria-describedby={calculateNoteId}
-            className={styles.calculate}
-          >
+          <Button variant="primary" type="submit" className={styles.calculate}>
             <FrameCorners />
             Calculate estimate
           </Button>
@@ -144,15 +150,27 @@ export function LoanForm({ state, dispatch }: LoanFormProps) {
             Reset
           </Button>
         </div>
-        <p id={calculateNoteId} className={styles.note}>
-          Calculation isn't available in this development version yet.
-        </p>
-        <div role="status" className={styles.status}>
-          {state.status && (
-            <>
+        <div className={styles.messages}>
+          <div role="status" className={styles.status}>
+            {state.status && (
+              <>
+                <Info
+                  aria-hidden="true"
+                  size={16}
+                  strokeWidth={1.5}
+                  className={styles.statusIcon}
+                />
+                <span>{STATUS_TEXT[state.status]}</span>
+              </>
+            )}
+          </div>
+          {/* Phones only: the estimate is below the form, out of sight. Not a live region;
+            the estimate panel's own status already announces that it is out of date. */}
+          {isStale && !state.status && (
+            <p className={styles.staleNote}>
               <Info aria-hidden="true" size={16} strokeWidth={1.5} className={styles.statusIcon} />
-              <span>{STATUS_TEXT[state.status]}</span>
-            </>
+              <span>Your inputs have changed. Calculate again to update the estimate below.</span>
+            </p>
           )}
         </div>
       </div>

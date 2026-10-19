@@ -56,13 +56,13 @@
   flex: 1 1 auto;
 }
 
-.note {
-  font-size: var(--text-hint);
-  line-height: var(--leading-hint);
-  color: var(--color-neutral-700);
+.messages {
+  display: flex;
+  flex-direction: column;
 }
 
-.status {
+.status,
+.staleNote {
   display: flex;
   gap: 8px;
   align-items: flex-start;
@@ -78,5 +78,10 @@
 @media (min-width: 760px) {
   .calculate {
     flex: 0 0 auto;
+  }
+
+  /* On wide screens the estimate sits beside the form and shows its own banner. */
+  .staleNote {
+    display: none;
   }
 }

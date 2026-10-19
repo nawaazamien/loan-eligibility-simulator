@@ -1,5 +1,7 @@
+import { CircleAlert } from 'lucide-react';
 import type { ReactNode, Ref } from 'react';
 
+import { cx } from '../../styles/cx';
 import styles from './CurrencyField.module.css';
 
 interface CurrencyFieldProps {
@@ -10,6 +12,8 @@ interface CurrencyFieldProps {
   value: string;
   onChange: (text: string) => void;
   onBlur: () => void;
+  /** Validation message; shown between the hint and the input, as in the design. */
+  error?: string | undefined;
   inputRef?: Ref<HTMLInputElement>;
   /** Extra controls that belong to this field, such as the loan slider. */
   children?: ReactNode;
@@ -28,10 +32,12 @@ export function CurrencyField({
   value,
   onChange,
   onBlur,
+  error,
   inputRef,
   children,
 }: CurrencyFieldProps) {
   const hintId = `${id}-hint`;
+  const errorId = `${id}-error`;
 
   return (
     <div className={styles.field}>
@@ -41,6 +47,17 @@ export function CurrencyField({
       <p id={hintId} className={styles.hint}>
         {hint}
       </p>
+      {error && (
+        <p id={errorId} className={styles.error}>
+          <CircleAlert
+            aria-hidden="true"
+            size={16}
+            strokeWidth={1.5}
+            className={styles.errorIcon}
+          />
+          <span>{error}</span>
+        </p>
+      )}
       <div className={styles.control}>
         <span aria-hidden="true" className={styles.prefix}>
           R
@@ -58,8 +75,9 @@ export function CurrencyField({
             onChange(event.target.value);
           }}
           onBlur={onBlur}
-          aria-describedby={hintId}
-          className={styles.input}
+          aria-describedby={error ? `${errorId} ${hintId}` : hintId}
+          aria-invalid={error ? true : undefined}
+          className={cx(styles.input, error && styles.invalid)}
         />
       </div>
       {children}

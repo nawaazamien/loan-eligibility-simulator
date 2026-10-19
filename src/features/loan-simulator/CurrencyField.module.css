@@ -53,3 +53,23 @@
 .input:focus-visible {
   border-color: var(--color-accent);
 }
+
+.error {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-critical);
+}
+
+.errorIcon {
+  flex: none;
+  margin-top: 3px;
+}
+
+.input.invalid {
+  border-color: var(--color-critical);
+  box-shadow: 0 0 0 1px var(--color-critical);
+}

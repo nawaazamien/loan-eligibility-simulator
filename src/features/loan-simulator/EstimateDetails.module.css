@@ -1,0 +1,236 @@
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Outcome block: icon + title + note, tinted by outcome (never colour alone). */
+.outcome {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 1px solid var(--outcome-border);
+  background: var(--outcome-bg);
+}
+
+.within {
+  --outcome-ink: var(--color-accent-700);
+  --outcome-bg: var(--color-accent-100);
+  --outcome-border: var(--color-accent-400);
+}
+
+.above {
+  --outcome-ink: var(--color-caution);
+  --outcome-bg: var(--color-caution-bg);
+  --outcome-border: var(--color-caution-border);
+}
+
+.none {
+  --outcome-ink: var(--color-critical);
+  --outcome-bg: var(--color-critical-bg);
+  --outcome-border: var(--color-critical-border);
+}
+
+.outcomeIcon {
+  flex: none;
+  color: var(--outcome-ink);
+}
+
+.outcomeText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.outcomeTitle {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--outcome-ink);
+}
+
+.outcomeNote {
+  font-size: var(--text-hint);
+  color: var(--color-neutral-800);
+}
+
+/* Out of date: neutral outcome block and a dimmed bar; text keeps full contrast. */
+.stale {
+  color: var(--color-neutral-800);
+}
+
+.stale .outcome {
+  --outcome-ink: var(--color-neutral-800);
+  --outcome-bg: transparent;
+  --outcome-border: var(--color-divider);
+}
+
+.stale .bar {
+  opacity: var(--disabled-opacity);
+}
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.figureLabel {
+  font-size: 14px;
+  color: var(--color-neutral-800);
+}
+
+.figureValue {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: var(--figure-size);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.figureNote {
+  margin-top: 6px;
+  font-size: var(--text-hint);
+  color: var(--color-neutral-700);
+}
+
+.explanation {
+  font-size: var(--text-body);
+}
+
+.summary {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: var(--border);
+}
+
+.summaryRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 12px 12px 0;
+  border-bottom: var(--border);
+  min-width: 0;
+}
+
+.summaryTerm {
+  font-size: 13px;
+  color: var(--color-neutral-700);
+}
+
+.summaryValue {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionHeading {
+  font-size: 18px;
+}
+
+.bar {
+  display: flex;
+  gap: 2px;
+  height: 14px;
+}
+
+.segment {
+  flex: none;
+}
+
+.expenses {
+  background: var(--color-neutral-400);
+}
+
+.debt {
+  background: var(--color-neutral-700);
+}
+
+.repayment {
+  background: var(--color-accent);
+}
+
+.leftOver {
+  background: var(--color-accent-100);
+  border: 1px solid var(--color-accent-400);
+}
+
+.legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 16px;
+}
+
+.legendItem {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: var(--text-hint);
+  min-width: 0;
+}
+
+.swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  transform: translateY(1px);
+}
+
+.legendValue {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.shortfall {
+  font-size: var(--text-hint);
+  font-weight: 500;
+  color: var(--color-caution);
+}
+
+.tips {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tip {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 6px;
+  font-size: 14.5px;
+  text-wrap: pretty;
+}
+
+.tip strong {
+  font-weight: 600;
+}
+
+.tipNumber {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  color: var(--color-accent-700);
+}
+
+.footnote {
+  font-size: 13px;
+  color: var(--color-neutral-700);
+}

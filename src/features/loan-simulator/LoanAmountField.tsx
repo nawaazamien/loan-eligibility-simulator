@@ -6,6 +6,7 @@ import { formatRand } from './model/format';
 interface LoanAmountFieldProps {
   id: string;
   value: string;
+  error?: string | undefined;
   sliderValue: number;
   onChange: (text: string) => void;
   onBlur: () => void;
@@ -15,11 +16,12 @@ interface LoanAmountFieldProps {
 /**
  * The loan amount: a precise text field (the source of truth) with a range slider as a
  * quicker alternative. Moving the slider writes its value into the field; typing a valid
- * amount moves the slider.
+ * amount moves the slider. Calculation always reads the text field, never the slider.
  */
 export function LoanAmountField({
   id,
   value,
+  error,
   sliderValue,
   onChange,
   onBlur,
@@ -32,6 +34,7 @@ export function LoanAmountField({
       label="Loan amount"
       hint={`Choose an amount between ${formatRand(LOAN_MIN_RAND)} and ${formatRand(LOAN_MAX_RAND)}.`}
       value={value}
+      error={error}
       onChange={onChange}
       onBlur={onBlur}
     >

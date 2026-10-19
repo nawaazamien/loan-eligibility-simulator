@@ -1,8 +1,10 @@
-# Simulation model (proposed for Phase 2)
+# Simulation model
 
-> **Status:** proposal. Nothing in this document is implemented in Phase 0.
+> **Status:** implemented in Phase 2, in `src/features/loan-simulator/model/` (`constants.ts`, `amount.ts`, `validate.ts`, `calculate.ts`, `format.ts`, `copy.ts`). Every case in §6 and §7 is a unit test.
 >
-> **Scope:** this is a local, illustrative simulator. Every rate, fee, limit and rule here is **fictional**. It is not Capitec's lending policy, any lender's policy, or a regulatory affordability assessment (for example under the National Credit Act). It performs no credit-bureau check and makes no approval, decline or offer.
+> **Scope:** this demonstration uses fictional assumptions and does not represent any lender's eligibility criteria or an offer of credit. It is a local, illustrative simulator: it performs no credit-bureau check and makes no approval, decline or offer.
+
+**In one paragraph.** Take-home income minus living expenses and existing debt gives the money available each month. The loan is a standard amortising loan at a fictional 19.5% a year, compounded monthly; its instalment is rounded once, half-up, to the cent, and a fictional R69 monthly fee is added to give the repayment. The estimate is "within" the demo limit when the repayment is at most 40% of the money available, "above" when it is more, and "no room" when nothing is available. All money is integer cents, and the 40% test is the exact integer comparison `5 × repayment ≤ 2 × available`, so no boundary depends on floating-point error.
 
 The model follows the approved design (`design/reference/HANDOFF.md` §7 and the logic in `LoanSimulator.dc.html`). It changes one thing: arithmetic and rounding are made exact (see §4 and DECISIONS D-008).
 
@@ -55,6 +57,10 @@ total       = repayment · n                                    (includes fees; 
 
 The zero-interest branch is not reachable with the fictional 19.5% rate. It exists so the amortisation function is total and well defined, and it is unit-tested directly.
 
+### Validation
+
+Amounts are checked in the design's order: empty → malformed (including more than two decimal places) → negative → outside the bounds in §1. Values are never clamped, rounded or defaulted. Empty is not zero: `0` is a valid expense or debt amount, an empty field is an error. A number too large to hold exactly is reported as out of range. The term is one of the five radio values; any other value is a programming error and throws. Income that does not cover commitments is a valid **outcome** ("no room"), not an input error.
+
 ### Derived suggestions (outcome "above" only)
 
 - **maxLoan**: the largest multiple of R1 000 in [R1 000, R250 000] whose repayment at the **same term** is "within" under the exact rule above. It is found by evaluating the same repayment function, not by inverting the formula, so a suggestion can never contradict the outcome rule. It is shown only when at least R1 000 qualifies. For the reference cases it agrees with the design's closed-form `floor((limit − 69) / factor / 1000) × 1000`.
@@ -68,7 +74,8 @@ The zero-interest branch is not reachable with the fictional 19.5% rate. It exis
 4. Display-only rounding:
    - Repayments are shown with cents (`R1 878.88`).
    - Other rand figures are shown as whole rands, rounded half-up from cents (`R4 460`, `R90 186`). The sign is handled separately, so −R398.12 is shown as `−R398`.
-   - The percentage is `round(repayment / available × 100)`, half-up, display only.
+   - The percentage is `round(repayment / available × 100)`, half-up, display only, computed in integers.
+   - Exception: when an estimate is above the limit by less than R1, the gap is shown with cents (`R0.01`), because whole rand would read "R0 a month above it" (case 6; DECISIONS D-028).
 5. Formatting: `R` + digits grouped in threes with NBSP (U+00A0) + `.` decimals; negatives use U+2212 MINUS SIGN (`−R398`). Implemented manually and unit-tested, not with `Intl` en-ZA (which uses comma decimals).
 
 ## 5. Outcome wording (from the design, estimate language only)
@@ -83,6 +90,8 @@ The zero-interest branch is not reachable with the fictional 19.5% rate. It exis
 The explanation sentences, next-step tips and the live-region announcement use the handoff templates verbatim. None of the wording says "approved", "qualify", "offer" or "eligible for", except the footnote "Changes don't guarantee you'd qualify for a real loan.", which is itself a disclaimer.
 
 ## 6. Reference cases (independently checkable)
+
+**Verification (Phase 2):** all eight cases and the case 2 derived values were re-derived independently with 50-digit decimal arithmetic (Python `decimal`, not the TypeScript implementation) before the implementation was written. Every value below matched; no correction was needed. The same table is the `reference cases` suite in `model/calculate.test.ts`.
 
 Monthly rate r = 0.195 / 12 = 0.01625. The factors below can be checked with any spreadsheet's `PMT(0.195/12, n, -P)`.
 
@@ -103,7 +112,7 @@ Zero-interest function check (not reachable through the UI): P = R12 000, n = 12
 
 Note: the handoff quotes "R1 878.96" only as a formatting sample, and the design text says "~R1 879". The exact value for case 1 is **R1 878.88** (R1 809.88 + R69).
 
-## 7. Boundary cases to unit-test in Phase 2
+## 7. Boundary cases (unit-tested)
 
 - `available == 0` → none, and `available < 0` → none, including the "use all of" and "are R… more than" wording.
 - `5·repayment == 2·available` → within (case 5), and one cent less income → above (case 6).

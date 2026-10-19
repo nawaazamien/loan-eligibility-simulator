@@ -164,3 +164,14 @@ From rendering `LoanSimulator.dc.html` through its own runtime and comparing it 
 - **Line breaking.** At 1280 px the reference wraps "to see:" in the empty-state sentence onto a second line; the implementation fits it on one. Both use `text-wrap: pretty` at the same width, so this is a line-breaking difference, not a layout one. Other vertical offsets are 1–3 px.
 - **Slider when the loan text is not a number.** The reference moves the slider to R1 000; the implementation keeps its last position (D-019).
 - **Input grouping.** The reference's field values use an ordinary space (`50 000`, byte 0x20), while display figures use NBSP. The implementation follows both (D-021).
+
+## 15. Phase 2 inspection notes
+
+From driving the live reference and the Phase 2 build through the same steps (screenshots in [validation/phase-2](validation/phase-2/README.md)):
+
+- **Figures agree.** Both compute R1 878.88, R4 498.12 and R1 082.04 for reference cases 1–3, with the same summaries, breakdown values and tips. The reference uses floating point and the build uses integer cents; they differ only at exact boundaries (D-008).
+- **Focus and scroll agree.** After Calculate both focus "Your estimate". At 360 px both scroll it into view (scroll positions 1333 and 1337 px). After an invalid submit both focus the error summary.
+- **Visible focus after scripted focus.** The build shows a ring on the estimate heading and the error summary after focus moves there; the reference shows none after a mouse click (D-030).
+- **Sub-R1 gaps.** The reference would say "R0 a month above it" one cent over the limit; the build says "R0.01" (D-028).
+- **Recalculate button** is 44 px tall rather than 40 px (D-031).
+- **Shortfalls.** As in the reference, the breakdown bar never draws a negative segment: "Left over" is omitted and the shortfall is stated in words, while the summary shows the negative amount ("−R398 a month").

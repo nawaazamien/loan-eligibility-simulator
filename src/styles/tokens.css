@@ -72,6 +72,7 @@
   --h1-size: 34px;
   --field-max: 100%;
   --assumptions-cols: minmax(0, 1fr);
+  --figure-size: 48px;
 }
 
 @media (min-width: 760px) {
@@ -84,5 +85,6 @@
     --h1-size: 46px;
     --field-max: 420px;
     --assumptions-cols: 130px minmax(0, 1fr);
+    --figure-size: 60px;
   }
 }

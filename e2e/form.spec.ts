@@ -63,9 +63,9 @@ test.describe('loan form', () => {
     await page.keyboard.press('ArrowLeft');
     await expect(term(page, 24)).toBeChecked();
 
-    // The term group is a single tab stop; Tab moves on to Reset, past the disabled button.
+    // The term group is a single tab stop; Tab moves on to Calculate.
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('button', { name: 'Reset' })).toBeFocused();
+    await expect(page.getByRole('button', { name: 'Calculate estimate' })).toBeFocused();
   });
 
   test('fills example values, then resets to the defaults with focus on income', async ({
@@ -75,7 +75,10 @@ test.describe('loan form', () => {
     await expect(field(page, 'Monthly take-home income')).toHaveValue('28 500');
     await expect(field(page, 'Loan amount')).toHaveValue('60 000');
     await expect(term(page, 48)).toBeChecked();
-    await expect(page.getByRole('status')).toHaveText('Example values added.');
+    const form = page.getByRole('form', { name: 'Your details' });
+    await expect(form.getByRole('status')).toHaveText(
+      'Example values added. Select Calculate estimate to see the result.',
+    );
     expect(await estimateFigures(page)).toEqual([]);
 
     await page.getByRole('button', { name: 'Reset' }).click();
@@ -83,26 +86,8 @@ test.describe('loan form', () => {
     await expect(field(page, 'Monthly take-home income')).toBeFocused();
     await expect(field(page, 'Loan amount')).toHaveValue('50 000');
     await expect(term(page, 36)).toBeChecked();
-    await expect(page.getByRole('status')).toHaveText(
+    await expect(form.getByRole('status')).toHaveText(
       'Form reset. Enter your details to calculate a new estimate.',
-    );
-  });
-
-  test('explains the disabled calculate action and never shows an estimate', async ({ page }) => {
-    const calculate = page.getByRole('button', { name: 'Calculate estimate' });
-    await expect(calculate).toBeDisabled();
-    await expect(calculate).toHaveAccessibleDescription(
-      "Calculation isn't available in this development version yet.",
-    );
-    await expect(
-      page.getByText("Calculation isn't available in this development version yet."),
-    ).toBeVisible();
-
-    await page.getByRole('button', { name: 'Use example values' }).click();
-    await field(page, 'Monthly take-home income').press('Enter');
-    expect(await estimateFigures(page)).toEqual([]);
-    await expect(page.getByRole('region', { name: 'Your estimate' })).toContainText(
-      'Enter your details and select Calculate estimate to see:',
     );
   });
 

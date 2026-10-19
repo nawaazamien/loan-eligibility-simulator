@@ -27,8 +27,22 @@ export function formatAmountOnBlur(raw: string): string {
   return centsToInputText(parsed.cents);
 }
 
-/** A whole-rand display figure: "R" + NBSP-grouped digits, negatives with U+2212 ("−R398"). */
+/**
+ * A display figure from integer cents: "R" + NBSP-grouped digits, with U+2212 for
+ * negatives ("−R398"). Whole rand by default, rounded half-up away from zero on the
+ * magnitude (R398.50 → R399); with `withCents`, exact to the cent ("R1 878.88").
+ */
+export function formatCents(cents: number, { withCents = false } = {}): string {
+  const sign = cents < 0 ? MINUS : '';
+  const magnitude = Math.abs(cents);
+  if (withCents) {
+    const whole = groupDigits(String(Math.floor(magnitude / 100)), NBSP);
+    return `${sign}R${whole}.${String(magnitude % 100).padStart(2, '0')}`;
+  }
+  return `${sign}R${groupDigits(String(Math.floor((magnitude + 50) / 100)), NBSP)}`;
+}
+
+/** A whole-rand display figure ("R250 000"). */
 export function formatRand(rand: number): string {
-  const sign = rand < 0 ? MINUS : '';
-  return `${sign}R${groupDigits(String(Math.abs(Math.round(rand))), NBSP)}`;
+  return formatCents(rand * 100);
 }
