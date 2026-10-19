@@ -124,7 +124,7 @@ _CI run_: GitHub Actions [run 39297094657](https://github.com/nawaazamien/loan-e
 **Validation:** Vitest model suite with coverage report, RTL integration tests for each state, Playwright journeys (calculate, edit to stale, recalculate, invalid submit, reset).
 **Depends on:** Phase 1.
 
-**Status:** complete locally (see the validation record). CI results are recorded below it.
+**Status:** complete. Verified locally and in CI; see the validation record.
 
 **Validation record (2026-10-19)**
 
@@ -137,6 +137,16 @@ _Where_: the clean checkout at `D:\Projects\loan-eligibility-simulator-phase1` (
 | Mutation check                                               | **Passed**: making the 40% boundary exclusive failed 3 tests; dropping the R69 fee failed 14                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `npm run test:e2e` (production preview)                      | **Passed**: 43 passed, 2 skipped. Shell (2), form (5) and estimate (7) specs at 1280, 360 and 320 px, plus the 759/760 px breakpoint test in the desktop project only                                                                                                                                                                                                                                                                                                                                               |
 | Design comparison                                            | **Done against rendered reference screens**: the live `LoanSimulator.dc.html` and the production build were driven through the same steps (within, above, no room, out of date, invalid) at 1280 and 360 px. The build was also checked at 320 px with the largest figures (R1 000 000 income, R250 000 over 12 months), a shortfall, errors and the expanded assumptions. Figures are identical in both, and focus lands in the same place after each step. See [validation/phase-2](validation/phase-2/README.md) |
+
+_CI run_: GitHub Actions [run 39329319137](https://github.com/nawaazamien/loan-eligibility-simulator/actions/runs/39329319137) on commit `872aa0f` (ubuntu-latest). Every job passed.
+
+| Job                                 | Result                                                                                                                                                                                   |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Static checks, unit tests and build | **Passed**: Vitest 161/161 in 9 files                                                                                                                                                    |
+| Browser tests (production preview)  | **Passed**: 43 passed, 2 skipped                                                                                                                                                         |
+| Docker image build and smoke test   | **Passed**: image build, uid 101, assets, `no-cache` index, `immutable` assets, CSP and security headers, 404, and the browser suite against the running container: 43 passed, 2 skipped |
+
+Local Docker was not used in this phase; the container is verified in CI.
 
 **Acceptance criteria**
 
