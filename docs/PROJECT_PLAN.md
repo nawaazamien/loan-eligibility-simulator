@@ -20,7 +20,9 @@ Work proceeds one phase at a time: implement, validate, commit, report, stop.
 
 ## Phases
 
-### Phase 0 — Design import, foundation, tooling, container, application shell (built; container validation pending)
+### Phase 0 — Design import, foundation, tooling, container, application shell
+
+**Status:** complete. All acceptance criteria are verified; see the validation record below.
 
 **Scope:** import and document the design; create AGENTS.md, this plan, DESIGN_HANDOFF, DECISIONS and SIMULATION_MODEL; set up the Vite + React + strict TS project with lint, format, unit and browser tests; add a multi-stage Dockerfile with an nginx config; add CI; write an initial README. Build the shell: header, intro, footer, tokens, fonts, and the two framed panels with placeholders.
 
@@ -36,21 +38,28 @@ Work proceeds one phase at a time: implement, validate, commit, report, stop.
 **Validation:** `npm ci`, `npm run check`, `npm run test:e2e` (preview and container), Docker build and run smoke test.
 **Depends on:** design access.
 
-**Validation record (2026-10-19, commit `f65b95a`, Windows 11, Node 24.18.0, npm 11.16.0)**
+**Validation record (2026-10-19)**
 
-Run in a fresh `git clone` of the repository, because the working copy's `node_modules` was locked by a running dev server.
+_Local run_: commit `f65b95a`, Windows 11, Node 24.18.0, npm 11.16.0. It ran in a fresh `git clone` of the repository, because the main working copy's `node_modules` was locked by a running dev server.
 
-| Check                                                        | Result                                                                                                                                                                                                 |
-| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `npm ci`                                                     | **Passed**: 238 packages, 0 vulnerabilities                                                                                                                                                            |
-| `npm run check` (typecheck, lint, format:check, test, build) | **Passed**: Vitest 4/4 tests in 1 file; build 222.51 kB JS (69.72 kB gzip), 5.39 kB CSS                                                                                                                |
-| `npm run test:e2e` (production preview)                      | **Passed**: 6/6 (2 tests × 1280, 360 and 320 px). The first attempt failed only because Playwright's Chromium was not installed locally; after `npx playwright install chromium` all passed            |
-| `npm run dev`                                                | **Passed**: served the page and transformed `src/main.tsx` (HTTP 200)                                                                                                                                  |
-| `npm run preview`                                            | **Passed**: used as the server for the e2e run above                                                                                                                                                   |
-| Docker build, run, headers, e2e against the container        | **Blocked by the environment**: the local Docker Desktop engine did not respond (`docker version` / `docker info` timed out on both contexts). Delegated to the CI `docker` job, which has not run yet |
-| GitHub Actions CI                                            | **Not run**: the public repository exists, but the push was rejected because the GitHub CLI token lacks the `workflow` scope                                                                           |
+| Check                                                        | Result                                                                                                                                                                                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm ci`                                                     | **Passed**: 238 packages, 0 vulnerabilities                                                                                                                                                             |
+| `npm run check` (typecheck, lint, format:check, test, build) | **Passed**: Vitest 4/4 tests in 1 file; build 222.51 kB JS (69.72 kB gzip), 5.39 kB CSS                                                                                                                 |
+| `npm run test:e2e` (production preview)                      | **Passed**: 6/6 (2 tests × 1280, 360 and 320 px). The first attempt failed only because Playwright's Chromium was not installed locally; after `npx playwright install chromium` all passed             |
+| `npm run dev`                                                | **Passed**: served the page and transformed `src/main.tsx` (HTTP 200)                                                                                                                                   |
+| `npm run preview`                                            | **Passed**: used as the server for the e2e run above                                                                                                                                                    |
+| Docker (local)                                               | **Not run, blocked by the environment**: the local Docker Desktop engine did not respond (`docker version` / `docker info` timed out on both contexts). The container is verified in CI instead (below) |
 
-Phase 0 is complete only once the CI `docker` job passes (image build, non-root user, assets, `no-cache` index, `immutable` assets, CSP and security headers, 404, and the browser suite against the container).
+_CI run_: GitHub Actions [run 39287506023](https://github.com/nawaazamien/loan-eligibility-simulator/actions/runs/39287506023) on commit `de881ef` (ubuntu-latest). Every job passed.
+
+| Job                                 | Result                                                                                                                                                                                                                                                                                                                                                                    |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Static checks, unit tests and build | **Passed**: `npm ci`, typecheck, lint, format:check, unit tests, production build                                                                                                                                                                                                                                                                                         |
+| Browser tests (production preview)  | **Passed**: 6/6                                                                                                                                                                                                                                                                                                                                                           |
+| Docker image build and smoke test   | **Passed**: image builds; the container starts and runs as uid 101; `index.html` and every referenced asset return 200; `index.html` is `no-cache`; hashed assets are `public, max-age=31536000, immutable`; CSP, nosniff, `X-Frame-Options: DENY` and `Referrer-Policy: no-referrer` are present; unknown paths return 404; Playwright 6/6 against the running container |
+
+The container acceptance criteria are verified in CI, not on the local machine.
 
 ### Phase 1 — Responsive interface matching the design
 
