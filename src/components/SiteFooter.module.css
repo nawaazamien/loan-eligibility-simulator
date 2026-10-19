@@ -1,0 +1,12 @@
+.footer {
+  border-top: var(--border);
+  margin-top: 8px;
+}
+
+.text {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 18px var(--page-pad-x) 28px;
+  font-size: 13px;
+  color: var(--color-neutral-700);
+}

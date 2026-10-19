@@ -1,0 +1,72 @@
+/*
+ * Design tokens.
+ * Source: Claude Design project "Industry" design system
+ * (design/reference/_ds/industry-2fec05b7-…/styles.css) plus the product-specific
+ * additions recorded in design/reference/HANDOFF.md §4. Only tokens this product uses
+ * (or will use in the planned phases) are carried over.
+ */
+:root {
+  /* The design defines a light theme only; keep native controls light to match. */
+  color-scheme: light;
+
+  /* Ground, text and lines */
+  --color-bg: #f2f2f3;
+  --color-surface: #e9e9ea;
+  --color-text: #1d1f20;
+  --color-divider: color-mix(in srgb, #1d1f20 16%, transparent);
+  --color-corner-mark: color-mix(in srgb, var(--color-text) 55%, transparent);
+
+  /* Accent (steel blue) ramp */
+  --color-accent: #5980a6;
+  --color-accent-100: #eef6ff;
+  --color-accent-400: #94bce3;
+  --color-accent-600: #597ea3;
+  --color-accent-700: #416180;
+  --color-accent-800: #2c455d;
+  --color-accent-900: #1d2d3d;
+
+  /* Neutral ramp */
+  --color-neutral-100: #f5f5f8;
+  --color-neutral-400: #b7b7ba;
+  --color-neutral-700: #5d5d60;
+  --color-neutral-800: #424244;
+
+  /* Functional status colours — added for this product, never decorative (HANDOFF §4) */
+  --color-critical: #a3392b;
+  --color-critical-bg: #fbefec;
+  --color-critical-border: #e0a397;
+  --color-caution: #8a5a00;
+  --color-caution-bg: #fbf4e6;
+  --color-caution-border: #d9b26a;
+
+  /* Type */
+  --font-heading: 'Barlow Condensed', system-ui, sans-serif;
+  --font-heading-weight: 600;
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --text-body: 15px;
+  --leading-body: 1.55;
+
+  /* Shape: everything square, no shadows (Industry "blueprint" direction) */
+  --radius: 0;
+  --border: 1px solid var(--color-divider);
+
+  /* Layout — mobile-first values; widened at the single 760px breakpoint below */
+  --page-max: 1160px;
+  --page-pad-x: 16px;
+  --main-pad: 24px 16px 32px;
+  --intro-gap: 22px;
+  --grid-gap: 28px;
+  --card-pad: 20px 18px;
+  --h1-size: 34px;
+}
+
+@media (min-width: 760px) {
+  :root {
+    --page-pad-x: 32px;
+    --main-pad: 40px 32px 48px;
+    --intro-gap: 32px;
+    --grid-gap: 32px;
+    --card-pad: 28px 30px;
+    --h1-size: 46px;
+  }
+}

@@ -1,0 +1,21 @@
+.main {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--main-pad);
+}
+
+.intro {
+  max-width: 720px;
+  margin-bottom: var(--intro-gap);
+}
+
+.title {
+  font-size: var(--h1-size);
+  line-height: 1.05;
+  margin-bottom: 10px;
+}
+
+.lead {
+  font-size: 16px;
+  color: var(--color-neutral-800);
+}

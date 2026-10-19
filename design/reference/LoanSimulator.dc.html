@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/industry-2fec05b7-7c26-49fc-ad42-36347baa1980/styles.css">
+<script src="_ds/industry-2fec05b7-7c26-49fc-ad42-36347baa1980/_ds_bundle.js"></script>
+<style>
+body{margin:0;background:var(--color-bg)}
+a{color:var(--color-accent-700)}a:hover{color:var(--color-accent-900)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</helmet>
+<div ref="{{ rootRef }}" style="width:100%;min-height:100%;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);font-size:15px;line-height:1.55">
+  <div aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">{{ announce }}</div>
+
+  <header style="border-bottom:1px solid var(--color-divider)">
+    <div style="max-width:1160px;margin:0 auto;padding:14px {{ padX }};display:flex;align-items:center;gap:12px">
+      <span style="font-family:var(--font-heading);font-weight:600;font-size:24px;letter-spacing:-0.01em;line-height:1">Tally</span>
+      <span class="tag tag-accent" style="font-weight:500">Demo</span>
+      <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}">
+        <span style="margin-left:auto;font-size:13px;color:var(--color-neutral-700)">Fictional estimates · Not a credit check</span>
+      </sc-if>
+    </div>
+  </header>
+
+  <main style="max-width:1160px;margin:0 auto;padding:{{ mainPad }}">
+    <div style="max-width:720px;margin-bottom:{{ introGap }}">
+      <h1 style="font-size:{{ h1Size }};margin:0 0 10px;line-height:1.05">Loan eligibility simulator</h1>
+      <p style="font-size:16px;margin:0;color:var(--color-neutral-800);text-wrap:pretty">See an illustrative estimate of what a personal loan could cost each month, and whether it fits a simple demo affordability rule. This isn't a credit check, an approval or an offer.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:{{ cols }};gap:{{ colGap }};align-items:start">
+
+      <form noValidate onSubmit="{{ onSubmit }}" aria-labelledby="{{ ids.formH }}" class="blueprint" style="padding:{{ cardPad }};display:flex;flex-direction:column;gap:28px;min-width:0">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <h2 id="{{ ids.formH }}" style="font-size:25px;margin:0">Your details</h2>
+          <button type="button" class="btn btn-ghost" onClick="{{ useExample }}" style="min-height:44px;font-family:var(--font-body);font-weight:500;font-size:14px;color:var(--color-accent-700);padding:0 8px">Use example values</button>
+        </div>
+
+        <sc-if value="{{ showSummary }}" hint-placeholder-val="{{ false }}">
+          <div ref="{{ summaryRef }}" tabIndex="-1" role="alert" aria-labelledby="{{ ids.sumH }}" style="border:2px solid #a3392b;padding:16px 18px;display:flex;gap:12px;align-items:flex-start;outline-offset:3px">
+            <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a3392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg>
+            <div style="min-width:0">
+              <h3 id="{{ ids.sumH }}" style="font-size:20px;margin:0 0 6px">Check {{ summaryCount }} before calculating</h3>
+              <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px">
+                <sc-for list="{{ summaryItems }}" as="s" hint-placeholder-count="2">
+                  <li><a href="{{ s.href }}" onClick="{{ s.go }}" style="color:#a3392b;font-weight:500">{{ s.text }}</a></li>
+                </sc-for>
+              </ul>
+            </div>
+          </div>
+        </sc-if>
+
+        <fieldset style="border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:22px;min-width:0">
+          <legend style="padding:0;margin-bottom:14px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;color:var(--color-accent-700)">Your monthly budget</legend>
+          <sc-for list="{{ budgetFields }}" as="f" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label for="{{ f.id }}" style="font-size:15px;font-weight:500">{{ f.label }}</label>
+              <p id="{{ f.helpId }}" style="margin:0;font-size:13.5px;line-height:1.45;color:var(--color-neutral-700);text-wrap:pretty">{{ f.help }}</p>
+              <sc-if value="{{ f.error }}">
+                <p id="{{ f.errId }}" style="margin:2px 0 0;display:flex;gap:6px;align-items:flex-start;font-size:14px;font-weight:500;color:#a3392b"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:3px"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg><span>{{ f.error }}</span></p>
+              </sc-if>
+              <div style="position:relative;max-width:{{ fieldMax }};margin-top:2px">
+                <span aria-hidden="true" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--color-neutral-700);pointer-events:none">R</span>
+                <input class="input" id="{{ f.id }}" name="{{ f.name }}" type="text" inputMode="decimal" autoComplete="off" value="{{ f.value }}" onChange="{{ f.onChange }}" onBlur="{{ f.onBlur }}" aria-describedby="{{ f.describedBy }}" aria-invalid="{{ f.invalid }}" style="min-height:46px;padding-left:30px;font-size:16px;font-variant-numeric:tabular-nums;border-color:{{ f.border }};box-shadow:{{ f.ring }};outline:{{ f.outline }};outline-offset:2px">
+              </div>
+            </div>
+          </sc-for>
+        </fieldset>
+
+        <fieldset style="border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:22px;min-width:0">
+          <legend style="padding:0;margin-bottom:14px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;color:var(--color-accent-700)">The loan you'd like</legend>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label for="{{ loan.id }}" style="font-size:15px;font-weight:500">{{ loan.label }}</label>
+            <p id="{{ loan.helpId }}" style="margin:0;font-size:13.5px;color:var(--color-neutral-700)">{{ loan.help }}</p>
+            <sc-if value="{{ loan.error }}">
+              <p id="{{ loan.errId }}" style="margin:2px 0 0;display:flex;gap:6px;align-items:flex-start;font-size:14px;font-weight:500;color:#a3392b"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:3px"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg><span>{{ loan.error }}</span></p>
+            </sc-if>
+            <div style="position:relative;max-width:{{ fieldMax }};margin-top:2px">
+              <span aria-hidden="true" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--color-neutral-700);pointer-events:none">R</span>
+              <input class="input" id="{{ loan.id }}" name="loan" type="text" inputMode="decimal" autoComplete="off" value="{{ loan.value }}" onChange="{{ loan.onChange }}" onBlur="{{ loan.onBlur }}" aria-describedby="{{ loan.describedBy }}" aria-invalid="{{ loan.invalid }}" style="min-height:46px;padding-left:30px;font-size:16px;font-variant-numeric:tabular-nums;border-color:{{ loan.border }};box-shadow:{{ loan.ring }}">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;margin-top:6px">
+              <input type="range" min="1000" max="250000" step="1000" value="{{ sliderVal }}" onChange="{{ onSlider }}" aria-label="Loan amount slider" aria-valuetext="{{ sliderText }}" style="width:100%;height:32px;margin:0;accent-color:var(--color-accent);cursor:pointer">
+              <div aria-hidden="true" style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--color-neutral-700);font-variant-numeric:tabular-nums"><span>R1 000</span><span>R250 000</span></div>
+            </div>
+          </div>
+
+          <fieldset aria-describedby="{{ ids.termHelp }}" style="border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;min-width:0">
+            <legend style="padding:0;margin-bottom:6px;font-size:15px;font-weight:500">Repayment term</legend>
+            <p id="{{ ids.termHelp }}" style="margin:0 0 4px;font-size:13.5px;color:var(--color-neutral-700);text-wrap:pretty">Longer terms lower the monthly repayment but cost more in interest overall.</p>
+            <div class="seg" style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));width:100%;max-width:{{ fieldMax }}">
+              <sc-for list="{{ terms }}" as="t" hint-placeholder-count="5">
+                <label class="seg-opt" style="min-height:52px;flex-direction:column;justify-content:center;gap:0;padding:6px 4px;line-height:1.15;text-align:center">
+                  <input type="radio" name="{{ t.name }}" value="{{ t.value }}" checked="{{ t.checked }}" onChange="{{ t.pick }}">
+                  <span style="font-family:var(--font-heading);font-weight:600;font-size:19px;font-variant-numeric:tabular-nums">{{ t.value }}</span>
+                  <span style="font-size:12px">months</span>
+                </label>
+              </sc-for>
+            </div>
+          </fieldset>
+        </fieldset>
+
+        <div style="display:flex;flex-direction:column;gap:12px;padding-top:4px">
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+            <button type="submit" class="btn btn-primary blueprint" style="min-height:48px;padding:0 26px;font-size:18px;flex:{{ btnFlex }}"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Calculate estimate</button>
+            <button type="button" class="btn btn-secondary" onClick="{{ reset }}" style="min-height:48px;padding:0 22px;font-size:17px">Reset</button>
+          </div>
+          <div role="status" style="font-size:14px;color:var(--color-neutral-800);display:flex;gap:8px;align-items:flex-start">
+            <sc-if value="{{ formStatus }}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:3px"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg><span>{{ formStatus }}</span></sc-if>
+          </div>
+        </div>
+      </form>
+
+      <section aria-labelledby="{{ ids.resH }}" class="blueprint" style="padding:{{ cardPad }};display:flex;flex-direction:column;gap:22px;min-width:0;position:{{ resPos }};top:16px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <h2 id="{{ ids.resH }}" ref="{{ resRef }}" tabIndex="-1" style="font-size:25px;margin:0;outline-offset:4px">Your estimate</h2>
+          <span style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;color:var(--color-neutral-700)">Illustrative only</span>
+        </div>
+
+        <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <svg aria-hidden="true" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"></rect><line x1="8" x2="16" y1="6" y2="6"></line><line x1="16" x2="16" y1="14" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
+            <p style="margin:0;font-size:16px;text-wrap:pretty">Enter your details and select <strong style="font-weight:600">Calculate estimate</strong> to see:</p>
+            <ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;color:var(--color-neutral-800)">
+              <li>your estimated monthly repayment</li>
+              <li>what you'd have left each month</li>
+              <li>whether it fits the demo affordability limit</li>
+              <li>what you could change to improve it</li>
+            </ul>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ hasResult }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ isStale }}">
+            <div role="status" style="display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid var(--color-neutral-700);background:var(--color-neutral-100)">
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
+              <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
+                <p style="margin:0;font-size:15px"><strong style="font-weight:600">Your inputs have changed.</strong> The estimate below is out of date.</p>
+                <button type="button" class="btn btn-secondary" onClick="{{ recalc }}" style="min-height:40px;font-size:15px;padding:0 16px">Recalculate estimate</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <div style="display:flex;flex-direction:column;gap:22px;color:{{ resultInk }}">
+            <div style="display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid {{ st.border }};background:{{ st.bg }}">
+              <sc-if value="{{ st.isWithin }}"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{ st.ink }}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg></sc-if>
+              <sc-if value="{{ st.isAbove }}"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{ st.ink }}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg></sc-if>
+              <sc-if value="{{ st.isNone }}"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{ st.ink }}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path></svg></sc-if>
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <p style="margin:0;font-size:17px;font-weight:600;line-height:1.3;color:{{ st.ink }}">{{ st.title }}</p>
+                <p style="margin:0;font-size:13.5px;color:var(--color-neutral-800)">{{ st.sub }}</p>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <p style="margin:0;font-size:14px;color:var(--color-neutral-800)">Estimated monthly repayment</p>
+              <p style="margin:0;font-family:var(--font-heading);font-weight:600;font-size:{{ bigSize }};line-height:1;letter-spacing:-0.02em;font-variant-numeric:tabular-nums">{{ r.repay }}</p>
+              <p style="margin:6px 0 0;font-size:13.5px;color:var(--color-neutral-700)">Includes the R69 monthly service fee · 19.5% a year, fixed (fictional)</p>
+            </div>
+
+            <p style="margin:0;font-size:15px;text-wrap:pretty">{{ r.explain }}</p>
+
+            <dl style="margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid var(--color-divider)">
+              <sc-for list="{{ rows }}" as="row" hint-placeholder-count="4">
+                <div style="padding:12px 0;border-bottom:1px solid var(--color-divider);display:flex;flex-direction:column;gap:2px;padding-right:12px">
+                  <dt style="font-size:13px;color:var(--color-neutral-700)">{{ row.k }}</dt>
+                  <dd style="margin:0;font-size:18px;font-weight:500;font-variant-numeric:tabular-nums">{{ row.v }}</dd>
+                </div>
+              </sc-for>
+            </dl>
+
+            <sc-if value="{{ showBar }}">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <h3 style="margin:0;font-size:18px">Where your {{ r.income }} goes each month</h3>
+                <div aria-hidden="true" style="display:flex;gap:2px;height:14px;opacity:{{ barOpacity }}">
+                  <sc-for list="{{ segs }}" as="g" hint-placeholder-count="4">
+                    <div style="width:{{ g.w }};background:{{ g.bg }};border:{{ g.border }};flex:none"></div>
+                  </sc-for>
+                </div>
+                <ul style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 16px">
+                  <sc-for list="{{ segs }}" as="g" hint-placeholder-count="4">
+                    <li style="display:flex;gap:8px;align-items:baseline;font-size:13.5px;min-width:0">
+                      <span aria-hidden="true" style="width:10px;height:10px;flex:none;background:{{ g.bg }};border:{{ g.border }};transform:translateY(1px)"></span>
+                      <span style="min-width:0">{{ g.label }} <strong style="font-weight:600;font-variant-numeric:tabular-nums">{{ g.val }}</strong></span>
+                    </li>
+                  </sc-for>
+                </ul>
+                <sc-if value="{{ r.shortNote }}"><p style="margin:0;font-size:13.5px;font-weight:500;color:#8a5a00">{{ r.shortNote }}</p></sc-if>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ hasTips }}">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <h3 style="margin:0;font-size:18px">What you could try</h3>
+                <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px">
+                  <sc-for list="{{ tips }}" as="tip" hint-placeholder-count="3">
+                    <li style="display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;font-size:14.5px">
+                      <span aria-hidden="true" style="font-family:var(--font-heading);font-weight:600;color:var(--color-accent-700)">{{ tip.n }}</span>
+                      <span style="text-wrap:pretty"><strong style="font-weight:600">{{ tip.title }}.</strong> {{ tip.text }}</span>
+                    </li>
+                  </sc-for>
+                </ul>
+                <p style="margin:0;font-size:13px;color:var(--color-neutral-700)">These are illustrations only. Changes don't guarantee you'd qualify for a real loan.</p>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <div style="border-top:1px solid var(--color-divider)">
+          <button type="button" aria-expanded="{{ assumpExpanded }}" aria-controls="{{ ids.assump }}" onClick="{{ toggleAssump }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:10px 0 0;background:none;border:0;font:inherit;font-size:15px;font-weight:500;color:var(--color-text);cursor:pointer;text-align:left;outline:{{ assumpOutline }};outline-offset:4px">
+            <span>How this estimate is calculated</span>
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex:none;transform:{{ chevron }}"><path d="m6 9 6 6 6-6"></path></svg>
+          </button>
+          <div id="{{ ids.assump }}" hidden="{{ assumpHidden }}" style="padding-top:12px">
+            <dl style="margin:0;display:flex;flex-direction:column;gap:12px;font-size:14px">
+              <sc-for list="{{ assumptions }}" as="a" hint-placeholder-count="5">
+                <div style="display:grid;grid-template-columns:{{ asCols }};gap:2px 16px">
+                  <dt style="font-weight:600">{{ a.k }}</dt>
+                  <dd style="margin:0;color:var(--color-neutral-800);text-wrap:pretty">{{ a.v }}</dd>
+                </div>
+              </sc-for>
+            </dl>
+            <p style="margin:14px 0 0;font-size:13px;color:var(--color-neutral-700)">All rates, fees and rules are fictional and used for demonstration only.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer style="border-top:1px solid var(--color-divider);margin-top:8px">
+    <p style="max-width:1160px;margin:0 auto;padding:18px {{ padX }} 28px;font-size:13px;color:var(--color-neutral-700);text-wrap:pretty">Tally is a demonstration project built for a front-end engineering assessment. It isn't affiliated with any bank or lender, doesn't store your information and doesn't perform credit checks.</p>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1100},&quot;preset&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;initial&quot;,&quot;within&quot;,&quot;above&quot;,&quot;none&quot;,&quot;empty&quot;,&quot;invalid&quot;,&quot;stale&quot;,&quot;reset&quot;,&quot;focus&quot;],&quot;default&quot;:&quot;initial&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;layout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;demoFocus&quot;:{&quot;editor&quot;:null,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const RATE = 0.195, FEE = 69, SHARE = 0.4, TERMS = [12, 24, 36, 48, 60];
+const ERR = '#a3392b', WARN = '#8a5a00';
+const F = {
+  income: { label: 'Monthly take-home income', help: 'The money you receive each month after tax and other deductions.', min: 1000, max: 1000000, empty: 'Enter your monthly take-home income.' },
+  expenses: { label: 'Monthly living expenses', help: "Rent, groceries, transport, school fees and similar costs. Don't include debt repayments.", min: 0, max: 1000000, empty: 'Enter your monthly living expenses, or 0 if you have none.' },
+  debt: { label: 'Existing monthly debt repayments', help: "Repayments on current loans, credit cards and store accounts. Don't include the loan you're simulating. Enter 0 if you have none.", min: 0, max: 1000000, empty: 'Enter your existing debt repayments, or 0 if you have none.' },
+  loan: { label: 'Loan amount', help: 'Choose an amount between R1 000 and R250 000.', min: 1000, max: 250000, empty: 'Enter the loan amount you would like.' }
+};
+const KEYS = ['income', 'expenses', 'debt', 'loan'];
+const grp = s => String(s).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+const R = (n, c) => { const neg = n < 0; n = Math.abs(n); let s; if (c) { const p = n.toFixed(2).split('.'); s = grp(p[0]) + '.' + p[1]; } else s = grp(Math.round(n)); return (neg ? '−' : '') + 'R' + s; };
+function parse(raw) {
+  let s = String(raw == null ? '' : raw).trim().replace(/^R/i, '').replace(/[\s ]/g, '');
+  if (!s) return { k: 'empty' };
+  s = s.replace(/,(?=\d{3}(?!\d))/g, '').replace(',', '.');
+  if (!/^-?\d+(\.\d{1,2})?$/.test(s)) return { k: 'bad' };
+  const n = parseFloat(s);
+  return n < 0 ? { k: 'neg' } : { k: 'ok', n };
+}
+function validate(key, raw) {
+  const f = F[key], p = parse(raw);
+  if (p.k === 'empty') return f.empty;
+  if (p.k === 'bad') return 'Use numbers only, for example 18 500.';
+  if (p.k === 'neg') return 'Enter an amount of R0 or more.';
+  if (p.n < f.min || p.n > f.max) return f.min > 0 ? `Enter an amount between ${R(f.min)} and ${R(f.max)}.` : `Enter an amount up to ${R(f.max)}.`;
+  return null;
+}
+const fmtInput = raw => { const p = parse(raw); if (p.k !== 'ok') return raw; return Number.isInteger(p.n) ? grp(p.n) : grp(Math.floor(p.n)) + '.' + p.n.toFixed(2).split('.')[1]; };
+const fac = n => { const r = RATE / 12; return r / (1 - Math.pow(1 + r, -n)); };
+function compute(v, term) {
+  const committed = v.expenses + v.debt, avail = v.income - committed;
+  const repay = v.loan * fac(term) + FEE, limit = Math.max(0, avail * SHARE);
+  const outcome = avail <= 0 ? 'none' : repay <= limit ? 'within' : 'above';
+  const repay60 = v.loan * fac(60) + FEE;
+  return { ...v, term, committed, avail, repay, limit, outcome, remaining: avail - repay, total: repay * term,
+    maxLoan: limit > FEE ? Math.floor((limit - FEE) / fac(term) / 1000) * 1000 : 0, repay60, within60: repay60 <= limit };
+}
+const keyOf = (values, term) => KEYS.map(k => { const p = parse(values[k]); return p.k === 'ok' ? p.n : 'x' + values[k]; }).join('|') + '|' + term;
+const BLANK = { income: '', expenses: '', debt: '', loan: '50 000' };
+const EX = { income: '28 500', expenses: '14 200', debt: '3 150', loan: '60 000' };
+
+class Component extends DCLogic {
+  uid = 'ls' + Math.random().toString(36).slice(2, 7);
+  rootRef = React.createRef(); resRef = React.createRef(); summaryRef = React.createRef();
+  state = Object.assign({ w: 1200 }, this.preset((this.props && this.props.preset) || 'initial'));
+
+  preset(name) {
+    const base = { values: { ...BLANK }, term: 36, errors: {}, submitted: false, result: null, snap: null, assumpOpen: false, showSummary: false, msg: '', announce: '' };
+    const calc = (values, term, extra) => { const nums = {}; KEYS.forEach(k => nums[k] = parse(values[k]).n); return { ...base, values, term, submitted: true, result: compute(nums, term), snap: keyOf(values, term), ...extra }; };
+    const withErr = (values, term) => { const errors = {}; KEYS.forEach(k => { const e = validate(k, values[k]); if (e) errors[k] = e; }); return { ...base, values, term, errors, submitted: true, showSummary: true }; };
+    switch (name) {
+      case 'within': return calc({ ...EX }, 48);
+      case 'above': return calc({ income: '18 000', expenses: '11 500', debt: '2 400', loan: '120 000' }, 36);
+      case 'none': return calc({ income: '12 000', expenses: '9 800', debt: '2 600', loan: '20 000' }, 24);
+      case 'empty': return withErr({ income: '', expenses: '', debt: '1 200', loan: '50 000' }, 36);
+      case 'invalid': return withErr({ income: '-5 000', expenses: '12,5,00', debt: '2 400', loan: '400 000' }, 36);
+      case 'stale': { const s = calc({ ...EX }, 48); return { ...s, values: { ...EX, income: '24 000' }, term: 60 }; }
+      case 'reset': return { ...base, msg: 'Form reset. Enter your details to calculate a new estimate.' };
+      case 'focus': return calc({ ...EX }, 48, { assumpOpen: true });
+      default: return base;
+    }
+  }
+  componentDidMount() {
+    const el = this.rootRef.current; if (!el || !window.ResizeObserver) return;
+    this.ro = new ResizeObserver(([e]) => { const w = Math.round(e.contentRect.width); if (w !== this.state.w) this.setState({ w }); });
+    this.ro.observe(el);
+  }
+  componentWillUnmount() { this.ro && this.ro.disconnect(); }
+  componentDidUpdate(pp) { if (pp.preset !== this.props.preset) this.setState(this.preset(this.props.preset || 'initial')); }
+
+  focusId(id) { const el = document.getElementById(id); if (el) { el.focus(); } }
+  setVal(k, v) { this.setState(s => ({ values: { ...s.values, [k]: v }, msg: '' })); }
+  onBlur(k) {
+    this.setState(s => {
+      const values = { ...s.values, [k]: fmtInput(s.values[k]) };
+      if (!s.submitted || !(k in s.errors) && !s.showSummary) return { values };
+      const errors = { ...s.errors }; const e = validate(k, values[k]); if (e) errors[k] = e; else delete errors[k];
+      return { values, errors, showSummary: s.showSummary && Object.keys(errors).length > 0 };
+    });
+  }
+  calculate() {
+    const s = this.state, values = {}; KEYS.forEach(k => values[k] = fmtInput(s.values[k]));
+    const errors = {}; KEYS.forEach(k => { const e = validate(k, values[k]); if (e) errors[k] = e; });
+    if (Object.keys(errors).length) {
+      this.setState({ values, errors, submitted: true, showSummary: true, msg: '', announce: '' }, () => this.summaryRef.current && this.summaryRef.current.focus());
+      return;
+    }
+    const nums = {}; KEYS.forEach(k => nums[k] = parse(values[k]).n);
+    const result = compute(nums, s.term);
+    const t = { within: 'Within the demo affordability limit', above: 'Above the demo affordability limit', none: 'No room for an additional repayment' }[result.outcome];
+    this.setState({ values, errors: {}, submitted: true, showSummary: false, result, snap: keyOf(values, s.term), msg: '',
+      announce: `Estimate updated. ${t}. Estimated monthly repayment ${R(result.repay, true)}.` }, () => {
+      const h = this.resRef.current; if (!h) return; h.focus({ preventScroll: true });
+      if (this.narrow()) { const y = h.getBoundingClientRect().top + window.scrollY - 12; window.scrollTo({ top: y, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }
+    });
+  }
+  narrow() { const l = this.props.layout; return l === 'mobile' || (l !== 'desktop' && this.state.w < 760); }
+
+  renderVals() {
+    const s = this.state, u = this.uid, narrow = this.narrow(), demoFocus = this.props.demoFocus || (this.props.preset === 'focus' ? 'assumptions' : '');
+    const ids = { formH: u + '-fh', resH: u + '-rh', sumH: u + '-sh', assump: u + '-as', termHelp: u + '-th' };
+    const field = k => {
+      const err = s.errors[k] || '', id = u + '-' + k;
+      return { id, name: k, label: F[k].label, help: F[k].help, helpId: id + '-h', errId: id + '-e', value: s.values[k], error: err,
+        describedBy: err ? `${id}-e ${id}-h` : `${id}-h`, invalid: err ? 'true' : 'false', border: err ? ERR : '', ring: err ? `0 0 0 1px ${ERR}` : 'none',
+        outline: demoFocus === k ? '2px solid var(--color-accent)' : '',
+        onChange: e => this.setVal(k, e.target.value), onBlur: () => this.onBlur(k) };
+    };
+    const lp = parse(s.values.loan), sliderVal = lp.k === 'ok' ? Math.min(250000, Math.max(1000, Math.round(lp.n / 1000) * 1000)) : 1000;
+    const errKeys = KEYS.filter(k => s.errors[k]);
+    const hasResult = !!s.result, isStale = hasResult && keyOf(s.values, s.term) !== s.snap;
+    const r = s.result;
+    let rv = {}, rows = [], segs = [], tips = [], st = {};
+    if (r) {
+      const pct = r.avail > 0 ? Math.round(r.repay / r.avail * 100) : 0;
+      const explain = r.outcome === 'within'
+        ? `Your estimated repayment of ${R(r.repay)} would use ${pct}% of the ${R(r.avail)} you have left each month after expenses and existing debt. That's within the demo limit of 40% (${R(r.limit)}).`
+        : r.outcome === 'above'
+        ? `Your estimated repayment of ${R(r.repay)} would use ${pct}% of the ${R(r.avail)} you have left each month after expenses and existing debt. The demo limit is 40% (${R(r.limit)}), so this estimate is ${R(r.repay - r.limit)} a month above it.`
+        : `Your expenses and existing debt repayments (${R(r.committed)}) ${r.avail < 0 ? 'are ' + R(-r.avail) + ' more than' : 'use all of'} your take-home income, so this demo can't fit an additional repayment.`;
+      rv = { repay: R(r.repay, true), explain, income: R(r.income), shortNote: r.remaining < 0 && r.outcome === 'above' ? `Your commitments and the new repayment would be ${R(-r.remaining)} more than your income.` : '' };
+      rows = [{ k: 'Loan amount', v: R(r.loan) }, { k: 'Repayment term', v: r.term + ' months' },
+        { k: 'Left after all repayments', v: R(r.remaining) + ' a month' }, { k: 'Total repayable', v: R(r.total) }];
+      const base = Math.max(r.income, r.committed + r.repay), w = v => (Math.max(0, v) / base * 100).toFixed(2) + '%';
+      segs = [
+        { label: 'Living expenses', val: R(r.expenses), w: w(r.expenses), bg: 'var(--color-neutral-400)', border: '0' },
+        { label: 'Existing debt', val: R(r.debt), w: w(r.debt), bg: 'var(--color-neutral-700)', border: '0' },
+        { label: 'New repayment', val: R(r.repay), w: w(r.repay), bg: 'var(--color-accent)', border: '0' },
+        { label: 'Left over', val: R(Math.max(0, r.remaining)), w: w(r.remaining), bg: 'var(--color-accent-100)', border: '1px solid var(--color-accent-400)' }
+      ].filter(g => g.label !== 'Left over' || r.remaining > 0);
+      if (r.outcome === 'above') {
+        if (r.maxLoan >= 1000) tips.push({ title: 'Borrow less', text: `Over ${r.term} months, about ${R(r.maxLoan)} or less would keep the estimate within the demo limit.` });
+        if (r.term < 60) tips.push({ title: 'Choose a longer term', text: `Over 60 months the estimate is ${R(r.repay60, true)} a month, ${r.within60 ? 'within' : 'still above'} the demo limit. You'd pay more interest overall.` });
+        tips.push({ title: 'Review your commitments', text: 'Lowering regular expenses or paying down existing debt increases the money you have left each month.' });
+      } else if (r.outcome === 'none') {
+        tips.push({ title: 'Check your figures', text: "Make sure income is your take-home amount and expenses don't also include debt repayments." });
+        tips.push({ title: 'Review your commitments', text: 'Lowering regular expenses or paying down existing debt increases the money you have left each month.' });
+      }
+      tips = tips.map((t, i) => ({ ...t, n: String(i + 1).padStart(2, '0') }));
+      const S = {
+        within: { title: 'Within the demo affordability limit', ink: 'var(--color-accent-700)', bg: 'var(--color-accent-100)', border: 'var(--color-accent-400)' },
+        above: { title: 'Above the demo affordability limit', ink: WARN, bg: '#fbf4e6', border: '#d9b26a' },
+        none: { title: 'No room for an additional repayment', ink: ERR, bg: '#fbefec', border: '#e0a397' }
+      }[r.outcome];
+      st = { ...S, sub: 'An illustration based on fictional assumptions — not a credit decision.', isWithin: r.outcome === 'within', isAbove: r.outcome === 'above', isNone: r.outcome === 'none' };
+      if (isStale) st = { ...st, ink: 'var(--color-neutral-800)', bg: 'transparent', border: 'var(--color-divider)', sub: 'Previous estimate — recalculate to update.' };
+    }
+    let formStatus = s.msg;
+    if (!formStatus && isStale && narrow) formStatus = 'Your inputs have changed. Calculate again to update the estimate below.';
+    return {
+      rootRef: this.rootRef, resRef: this.resRef, summaryRef: this.summaryRef, ids, announce: s.announce,
+      wide: !narrow, padX: narrow ? '16px' : '32px', mainPad: narrow ? '24px 16px 32px' : '40px 32px 48px', introGap: narrow ? '22px' : '32px',
+      h1Size: narrow ? '34px' : '46px', cols: narrow ? 'minmax(0,1fr)' : 'minmax(0,7fr) minmax(0,5fr)', colGap: narrow ? '28px' : '32px',
+      cardPad: narrow ? '20px 18px' : '28px 30px', fieldMax: narrow ? '100%' : '420px', btnFlex: narrow ? '1 1 auto' : '0 0 auto',
+      resPos: narrow ? 'static' : 'sticky', bigSize: narrow ? '48px' : '60px', asCols: narrow ? 'minmax(0,1fr)' : '130px minmax(0,1fr)',
+      onSubmit: e => { e.preventDefault(); this.calculate(); }, recalc: () => this.calculate(),
+      useExample: () => this.setState(st0 => ({ values: { ...EX }, term: 48, errors: {}, showSummary: false, msg: 'Example values added. Select Calculate estimate to see the result.' })),
+      reset: () => this.setState({ ...this.preset('reset'), w: s.w }, () => this.focusId(u + '-income')),
+      showSummary: s.showSummary && errKeys.length > 0, summaryCount: errKeys.length === 1 ? '1 field' : errKeys.length + ' fields',
+      summaryItems: errKeys.map(k => ({ text: s.errors[k], href: '#' + u + '-' + k, go: e => { e.preventDefault(); this.focusId(u + '-' + k); } })),
+      budgetFields: ['income', 'expenses', 'debt'].map(field), loan: field('loan'),
+      sliderVal, sliderText: R(sliderVal), onSlider: e => this.setVal('loan', grp(e.target.value)),
+      terms: TERMS.map(t => ({ value: String(t), name: u + '-term', checked: s.term === t, pick: () => this.setState({ term: t, msg: '' }) })),
+      formStatus,
+      showEmpty: !hasResult, hasResult, isStale, resultInk: isStale ? 'var(--color-neutral-800)' : 'var(--color-text)', barOpacity: isStale ? '0.45' : '1',
+      st, r: rv, rows, segs, showBar: !!r && r.outcome !== 'none', tips, hasTips: tips.length > 0,
+      assumpExpanded: s.assumpOpen ? 'true' : 'false', assumpHidden: !s.assumpOpen, chevron: s.assumpOpen ? 'rotate(180deg)' : 'none',
+      assumpOutline: demoFocus === 'assumptions' ? '2px solid var(--color-accent)' : '',
+      toggleAssump: () => this.setState(x => ({ assumpOpen: !x.assumpOpen })),
+      assumptions: [
+        { k: 'Interest rate', v: '19.5% a year, fixed for the full term. Interest is calculated monthly on the outstanding balance.' },
+        { k: 'Fees', v: 'A R69 monthly service fee is added to every repayment. No initiation fee is included.' },
+        { k: 'Affordability rule', v: 'Take-home income minus living expenses and existing debt gives the money you have left. The new repayment may use up to 40% of it.' },
+        { k: 'Outcomes', v: 'Within the limit, above the limit, or no room when expenses and existing debt use all of your income.' },
+        { k: 'Not considered', v: 'Credit history, credit insurance, rate changes, employment or any credit bureau information.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
