@@ -45,10 +45,22 @@
   --font-body: 'Barlow', system-ui, sans-serif;
   --text-body: 15px;
   --leading-body: 1.55;
+  --text-label: 15px;
+  --text-hint: 13.5px;
+  --leading-hint: 1.45;
+  --text-input: 16px; /* 16px or more stops iOS zooming into focused fields */
 
   /* Shape: everything square, no shadows (Industry "blueprint" direction) */
   --radius: 0;
   --border: 1px solid var(--color-divider);
+
+  /* Interaction tints, from the Industry component layer */
+  --color-hover-tint: color-mix(in srgb, var(--color-text) 7%, transparent);
+  --color-active-tint: color-mix(in srgb, var(--color-text) 14%, transparent);
+  --color-accent-hover-tint: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  --color-accent-active-tint: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  --color-input-border-hover: color-mix(in srgb, var(--color-text) 45%, transparent);
+  --disabled-opacity: 0.45;
 
   /* Layout — mobile-first values; widened at the single 760px breakpoint below */
   --page-max: 1160px;
@@ -58,6 +70,8 @@
   --grid-gap: 28px;
   --card-pad: 20px 18px;
   --h1-size: 34px;
+  --field-max: 100%;
+  --assumptions-cols: minmax(0, 1fr);
 }
 
 @media (min-width: 760px) {
@@ -68,5 +82,7 @@
     --grid-gap: 32px;
     --card-pad: 28px 30px;
     --h1-size: 46px;
+    --field-max: 420px;
+    --assumptions-cols: 130px minmax(0, 1fr);
   }
 }

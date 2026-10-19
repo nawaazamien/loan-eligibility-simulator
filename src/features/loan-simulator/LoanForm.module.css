@@ -1,0 +1,82 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: var(--card-pad);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.heading {
+  font-size: 25px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: 14px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--color-accent-700);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Full width on phones, intrinsic from 760px (HANDOFF §2). */
+.calculate {
+  flex: 1 1 auto;
+}
+
+.note {
+  font-size: var(--text-hint);
+  line-height: var(--leading-hint);
+  color: var(--color-neutral-700);
+}
+
+.status {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 14px;
+  color: var(--color-neutral-800);
+}
+
+.statusIcon {
+  flex: none;
+  margin-top: 3px;
+}
+
+@media (min-width: 760px) {
+  .calculate {
+    flex: 0 0 auto;
+  }
+}

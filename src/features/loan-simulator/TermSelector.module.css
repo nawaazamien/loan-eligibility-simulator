@@ -1,0 +1,91 @@
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: 6px;
+  font-size: var(--text-label);
+  font-weight: 500;
+}
+
+.hint {
+  margin-bottom: 4px;
+  font-size: var(--text-hint);
+  line-height: var(--leading-hint);
+  color: var(--color-neutral-700);
+}
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: 100%;
+  max-width: var(--field-max);
+  border: var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 52px;
+  padding: 6px 4px;
+  line-height: 1.15;
+  text-align: center;
+  cursor: pointer;
+}
+
+.option + .option {
+  border-left: var(--border);
+}
+
+/* The native radio stays in the accessibility tree and keyboard order; only its dot is hidden. */
+.radio {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.option:has(.radio:checked) {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
+.option:not(:has(.radio:checked)):hover {
+  background: var(--color-hover-tint);
+}
+
+.option:has(.radio:focus-visible) {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+/* A checked cell is already accent-filled, so its focus ring uses the text colour to stay visible. */
+.option:has(.radio:checked:focus-visible) {
+  outline-color: var(--color-text);
+}
+
+.number {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 19px;
+  font-variant-numeric: tabular-nums;
+}
+
+.unit {
+  font-size: 12px;
+}

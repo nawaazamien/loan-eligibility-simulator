@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 
+import { randFigures } from '../test/figures';
 import { App } from './App';
 
 describe('App shell', () => {
@@ -19,8 +20,21 @@ describe('App shell', () => {
     render(<App />);
 
     const main = screen.getByRole('main');
-    expect(within(main).getByRole('region', { name: 'Your details' })).toBeInTheDocument();
+    expect(within(main).getByRole('form', { name: 'Your details' })).toBeInTheDocument();
     expect(within(main).getByRole('region', { name: 'Your estimate' })).toBeInTheDocument();
+  });
+
+  it('keeps a logical heading order', () => {
+    render(<App />);
+
+    const headings = screen
+      .getAllByRole('heading')
+      .map((heading) => `${heading.tagName}: ${heading.textContent}`);
+    expect(headings).toEqual([
+      'H1: Loan eligibility simulator',
+      'H2: Your details',
+      'H2: Your estimate',
+    ]);
   });
 
   it('states that the product is a fictional demo, not a credit check or offer', () => {
@@ -39,6 +53,6 @@ describe('App shell', () => {
     render(<App />);
 
     const estimate = screen.getByRole('region', { name: 'Your estimate' });
-    expect(estimate.textContent).not.toMatch(/R\s?\d/);
+    expect(randFigures(estimate)).toEqual([]);
   });
 });

@@ -5,48 +5,8 @@
   align-items: start;
 }
 
-.panel {
-  padding: var(--card-pad);
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-.heading {
-  font-size: 25px;
-}
-
-.resultsHeader {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.kicker {
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: var(--color-neutral-700);
-}
-
-/* Temporary Phase 0 content: deliberately plain and muted so it is not mistaken for a feature. */
-.placeholder {
-  padding: 12px 14px;
-  border: 1px dashed var(--color-divider);
-  font-size: 14px;
-  color: var(--color-neutral-700);
-}
-
 @media (min-width: 760px) {
   .layout {
     grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  }
-
-  .results {
-    position: sticky;
-    top: 16px;
   }
 }

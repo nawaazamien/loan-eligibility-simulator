@@ -133,7 +133,7 @@ Wording review: the design consistently uses estimate language ("estimate", "ill
 | Design files (`*.dc.html`, `HANDOFF.md`) | Owner's Claude Design project                                              | reference only (`design/reference/`)           |
 | Industry `styles.css`, `readme.md`       | Claude Design–generated design system in the owner's project               | token source, reference only                   |
 | Barlow, Barlow Condensed                 | SIL OFL 1.1 (The Barlow Project Authors) via `@fontsource`                 | self-hosted in the bundle                      |
-| Lucide icons                             | ISC licence                                                                | planned for Phase 1 via `lucide-react`         |
+| Lucide icons                             | ISC licence                                                                | `lucide-react` 1.52.0, from Phase 1            |
 | Favicon                                  | Made for this project: a "T" on the accent colour, as the handoff suggests | `public/favicon.svg`                           |
 | `support.js`                             | Generated Claude Design runtime; no licence stated                         | inspected only; git-ignored, not redistributed |
 
@@ -153,3 +153,14 @@ There are no images, illustrations or third-party logos.
 | Open: sessionStorage       | The handoff recommends no persistence.                                                                                     | No persistence. See D-010.                                                                        |
 | Responsive mechanism       | The reference switches layout on container width (ResizeObserver).                                                         | CSS media query at 760 px. See D-005.                                                             |
 | Not designed               | Dark theme, 404 page, loading states                                                                                       | Out of scope. Unknown paths return nginx 404.                                                     |
+
+## 14. Phase 1 inspection notes
+
+From rendering `LoanSimulator.dc.html` through its own runtime and comparing it with the Phase 1 build (screenshots in [validation/phase-1](validation/phase-1/README.md)):
+
+- **The blueprint frame is product UI, not a board annotation.** The live component itself puts the `blueprint` class and four corner marks on the form, the estimate panel and the Calculate button. The board's annotations are separate: the `dv-*` artboard chrome, labels, notes and the "Try next" line. The Phase 0 frames were therefore correct and are kept.
+- **Mobile corner marks in the reference are a preview artefact.** At 360 px the reference sets its results panel to `position: static`, so that panel's corner marks escape to the page edges. The implementation keeps them on the panel (D-024).
+- **Selected term focus.** The reference's inset accent focus ring is invisible on the accent-filled selected cell. The implementation uses the text colour there (D-022).
+- **Line breaking.** At 1280 px the reference wraps "to see:" in the empty-state sentence onto a second line; the implementation fits it on one. Both use `text-wrap: pretty` at the same width, so this is a line-breaking difference, not a layout one. Other vertical offsets are 1–3 px.
+- **Slider when the loan text is not a number.** The reference moves the slider to R1 000; the implementation keeps its last position (D-019).
+- **Input grouping.** The reference's field values use an ordinary space (`50 000`, byte 0x20), while display figures use NBSP. The implementation follows both (D-021).

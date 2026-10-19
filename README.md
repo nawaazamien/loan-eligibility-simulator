@@ -11,13 +11,21 @@ Built as a recruitment assignment for a Front-End Software Engineer role. "Tally
 | Phase | Scope                                                        | State                                                                                                                                       |
 | ----- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0     | Design import, tooling, container, application shell         | **Done**, verified locally and in CI ([record](docs/PROJECT_PLAN.md#phase-0--design-import-foundation-tooling-container-application-shell)) |
-| 1     | Responsive form and results UI matching the design           | Planned                                                                                                                                     |
+| 1     | Responsive form and results UI matching the design           | **Done** ([record](docs/PROJECT_PLAN.md#phase-1--responsive-interface-matching-the-design))                                                 |
 | 2     | Simulation model, validation, result and stale states, reset | Planned                                                                                                                                     |
 | 3     | Accessibility and responsive refinement, test coverage       | Planned                                                                                                                                     |
 | 4     | Production verification and submission readiness             | Planned                                                                                                                                     |
 
-**What works now:** the page shell (header with Demo tag, title and intro, the two-panel responsive layout with the design's "blueprint" frames, footer), self-hosted fonts, design tokens, the test and lint toolchain, the Docker image and CI.
-**Not built yet:** the form and the calculation. The two panels show clearly labelled placeholders. No figures are calculated or shown. See [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md).
+**What works now:**
+
+- The page from the approved design: header with the Demo tag, title and intro, the two-panel layout with the design's "blueprint" frames (side by side from 760 px, stacked below), and the footer.
+- The details form: take-home income, living expenses, existing debt repayments and loan amount as rand fields with visible labels and helper text, plus the repayment term as a segmented set of radio buttons. Amounts keep exactly what you type and are tidied only when you leave a field (`28500` → `28 500`). Empty or malformed text is never turned into zero.
+- A loan slider kept in step with the loan field, "Use example values", Reset (restores the defaults and returns focus to the first field), and the "How this estimate is calculated" disclosure.
+- The estimate panel's initial state, which explains what will appear once an estimate is calculated.
+
+> **Temporary limitation (development version):** **Calculate estimate** is disabled, with a visible note saying calculation isn't available yet. No estimate, repayment or eligibility outcome is calculated or shown anywhere. The calculation, validation and result states are added in Phase 2, which also enables the button.
+
+See [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md).
 
 ## Stack
 
@@ -78,16 +86,23 @@ docker run --rm -p 8080:8080 loan-eligibility-simulator
 src/
   main.tsx                     entry: fonts, global styles, React root
   app/App.tsx                  page composition (header, intro, simulator, footer)
-  components/                  presentational pieces: SiteHeader, SiteFooter, Frame (blueprint frame)
-  features/loan-simulator/     the simulator UI; from Phase 2 also its pure model (no React)
+  components/                  shared presentational pieces: SiteHeader, SiteFooter, Button, FrameCorners
+  features/loan-simulator/
+    LoanSimulator.tsx          the 7/5 grid; owns the form state
+    formState.ts               pure reducer for the form (edit, blur, slide, term, example, reset)
+    LoanForm.tsx               the details form: CurrencyField, LoanAmountField (+ slider), TermSelector
+    ResultsPanel.tsx           the estimate panel and AssumptionsDisclosure
+    model/                     pure functions, no React: amount parsing, formatting, slider mapping, limits
   styles/                      tokens.css (design tokens), global.css, cx helper
+  test/                        Vitest setup and test helpers
 e2e/                           Playwright browser tests
 nginx/                         runtime server config and security headers
 design/reference/              verbatim copy of the approved design (reference only, not bundled)
 docs/                          plan, design handoff, decisions, simulation model
+docs/validation/phase-1/       screenshots comparing the build with the rendered reference
 ```
 
-The calculation will live in pure TypeScript functions, kept separate from the React components and fully unit-tested. Money is handled in integer cents so that boundary decisions never depend on floating-point error. The proposed model, with worked examples you can check by hand, is in [docs/SIMULATION_MODEL.md](docs/SIMULATION_MODEL.md).
+Parsing and formatting are already pure TypeScript functions in `model/`, kept out of the React components and unit-tested. The calculation will join them in Phase 2. Money is handled in integer cents, so boundary decisions never depend on floating-point error. The proposed model, with worked examples you can check by hand, is in [docs/SIMULATION_MODEL.md](docs/SIMULATION_MODEL.md).
 
 ## Documentation
 
@@ -98,7 +113,7 @@ The calculation will live in pure TypeScript functions, kept separate from the R
 
 ## Current limitations
 
-- The form, validation and calculation are not implemented yet (Phases 1–2).
-- Accessibility has been designed in, but the full WCAG 2.2 audit is planned for Phase 3.
+- Calculation, validation messages, result states and the stale-result handling are not implemented yet (Phase 2). Until then, **Calculate estimate** is disabled and says so.
+- Accessibility is built in (native labelled controls, fieldsets, keyboard operation, visible focus), but the full WCAG 2.2 audit, including automated axe checks and zoom testing, is planned for Phase 3.
 - Light theme only, as designed.
 - No licence has been chosen yet. That is the repository owner's decision.

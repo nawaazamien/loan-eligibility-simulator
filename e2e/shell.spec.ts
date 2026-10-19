@@ -40,7 +40,7 @@ test.describe('application shell', () => {
     await page.goto('/');
     const width = page.viewportSize()?.width ?? 0;
 
-    const details = page.getByRole('region', { name: 'Your details' });
+    const details = page.getByRole('form', { name: 'Your details' });
     const estimate = page.getByRole('region', { name: 'Your estimate' });
     const detailsBox = await details.boundingBox();
     const estimateBox = await estimate.boundingBox();
