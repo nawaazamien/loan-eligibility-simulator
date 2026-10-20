@@ -227,6 +227,17 @@ _CI run_: GitHub Actions [run 39405163945](https://github.com/nawaazamien/loan-e
 | `npm run test:e2e`                        | 99 passed, 4 skipped                                                                                                                                                                                             |
 | Docker                                    | Local engine unavailable; verified in CI with the README's commands                                                                                                                                              |
 
+_CI run_: GitHub Actions [run 39426416360](https://github.com/nawaazamien/loan-eligibility-simulator/actions/runs/39426416360) on commit `dd59a01` (ubuntu-latest). Every job passed with no retries.
+
+| Job                                                    | Result                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Static checks, unit tests and build, Node 22 (22.23.3) | **Passed**: Vitest 164/164, coverage thresholds met                                                                                                                                                                                                                                                                     |
+| Static checks, unit tests and build, Node 24 (24.21.0) | **Passed**: Vitest 164/164, coverage thresholds met, report uploaded                                                                                                                                                                                                                                                    |
+| Browser tests (production preview)                     | **Passed**: 99 passed, 4 skipped (Chromium, Firefox, WebKit)                                                                                                                                                                                                                                                            |
+| Docker image build and smoke test                      | **Passed**: built and run with the README's commands. The image holds exactly 13 files in `/usr/share/nginx/tally` (index.html, favicon, notices, JS, CSS and 8 font files), with no source maps and no `50x.html`. uid 101, headers, caching and 404s as documented, and 99 browser tests passed against the container |
+
+The JS and CSS file hashes in the CI image match the local build, so the build is reproducible across machines.
+
 **Acceptance criteria**
 
 | Criterion                                                                         | Result                                                                |
