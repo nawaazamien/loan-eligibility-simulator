@@ -4,12 +4,12 @@
 
 ## 1. What was tested
 
-| Item          | Value                                                                                                                                                      |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Code          | the Phase 4 commit (parent `51c164a`); CI results for the pushed commits are in §6                                                                         |
-| Local machine | Windows 11 Pro, Node 24.18.0, npm 11.16.0; Playwright 1.64.1 with Chromium (Chrome for Testing 156), Firefox 157.0, WebKit 27.2                            |
-| CI            | GitHub Actions `ubuntu-latest`: checks job on Node 22 and 24; browser and Docker jobs on Node 24                                                           |
-| Docker        | **Not available locally** (the Docker Desktop engine did not respond within 20s). Verified in CI on a clean checkout with the README's exact commands (§3) |
+| Item          | Value                                                                                                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Code          | the Phase 4 commit (parent `51c164a`); CI results for the pushed commits are in §6                                                                                 |
+| Local machine | Windows 11 Pro, Node 24.18.0, npm 11.16.0; Playwright 1.64.1 with Chromium (Chrome for Testing 156), Firefox 157.0, WebKit 27.2                                    |
+| CI            | GitHub Actions `ubuntu-latest`: checks job on Node 22 and 24; browser and Docker jobs on Node 24                                                                   |
+| Docker        | **Not available locally** (the Docker Desktop engine did not respond within 20s). Verified in CI on a clean checkout with the README's exact commands (§3): passed |
 
 ## 2. Fresh clone, following the README
 
@@ -92,13 +92,13 @@ Also: a test locator for "Calculate estimate" also matched "Recalculate estimate
 
 ## 6. Final test results
 
-| Check                   | Local (this machine)                                                                                                                    | CI        |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| `npm run check`         | Passed: 164/164                                                                                                                         | See below |
-| `npm run test:coverage` | Passed: model and reducer 100% (enforced); app 99.6% statements, 99.4% branches                                                         | See below |
-| `npm run test:e2e`      | **99 passed, 4 skipped** (intentional, project-specific) across Chromium ×3 widths, Firefox, WebKit, and Firefox at a 32px default font | See below |
+| Check                   | Local (this machine)                                                                                                                    | CI                                                                                                          |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `npm run check`         | Passed: 164/164                                                                                                                         | Passed on Node 22.23.3 and 24.21.0: 164/164 each                                                            |
+| `npm run test:coverage` | Passed: model and reducer 100% (enforced); app 99.6% statements, 99.4% branches                                                         | Passed (thresholds enforced on both Node versions)                                                          |
+| `npm run test:e2e`      | **99 passed, 4 skipped** (intentional, project-specific) across Chromium ×3 widths, Firefox, WebKit, and Firefox at a 32px default font | **99 passed, 4 skipped** against the production preview, and again against the Docker container; no retries |
 
-CI for the pushed Phase 4 commits is recorded in [PROJECT_PLAN.md](../../PROJECT_PLAN.md#phase-4--production-verification-docker-execution-readme-completion-submission-readiness).
+CI: [run 39426416360](https://github.com/nawaazamien/loan-eligibility-simulator/actions/runs/39426416360) on `dd59a01`. The Docker job built and ran the image with the README's commands. The image holds exactly 13 files (index.html, favicon, notices, one JS, one CSS, 8 font files) and no `50x.html`. Its JS and CSS hashes match the local build. Later commits that only update records are listed in [PROJECT_PLAN.md](../../PROJECT_PLAN.md#phase-4--production-verification-docker-execution-readme-completion-submission-readiness).
 
 ## 7. Manual checks still to do (Nawaaz)
 
