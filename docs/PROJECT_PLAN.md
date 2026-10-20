@@ -282,3 +282,20 @@ The JS and CSS file hashes in the CI image match the local build, so the build i
 Manual accessibility gaps remain as listed in the submission review: no real screen-reader pass (including the new helper), no real browser zoom, no real Windows high contrast, and no Safari or physical phone.
 
 Accessibility of the helper is covered by axe, keyboard and focus tests, text spacing and larger text. It has **not** had a real screen-reader pass; that stays on the manual checklist.
+
+### Phase 6 — Align with the employer's API specification
+
+**Status:** complete, verified locally, in CI and on the live demo. See the [Phase 6 review](validation/phase-6/SUBMISSION_REVIEW.md) for the full record, the requirement checklist and the manual gaps.
+
+**Scope:** the specification attachment overlooked until after Phase 5: a typed API client and an in-browser mock (Mock Service Worker) for the four endpoints; a form built from the validation rules and products; eligibility, likelihood, risk, recommended amounts, ratios and the complete repayment schedule from the API; asynchronous states; traceability, an API document and independent verification of the financial values (D-054 to D-066).
+
+**Validation record (2026-10-20)**, commit `08b6216`:
+
+| Check                        | Result                                                                                                                                                                                                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run check`              | **Passed**: 284 unit and component tests in 15 files; production build                                                                                                                                                                                        |
+| `npm run test:coverage`      | **Passed**: 100% enforced for `model/**`, `formState.ts` and `expenseHelperState.ts`                                                                                                                                                                          |
+| `npm run test:e2e` (preview) | **Passed**: 158 passed, 20 skipped by design (engine- or width-specific)                                                                                                                                                                                      |
+| Fresh clone of `main`        | **Passed**: `npm ci`, `npm run check`, and the estimate and privacy browser specs                                                                                                                                                                             |
+| CI                           | **Passed**: [run 39503390798](https://github.com/nawaazamien/loan-eligibility-simulator/actions/runs/39503390798), all four jobs (Node 22 and 24, browser tests, Docker build with the browser suite against the container)                                   |
+| Live demo                    | **Passed**: the full browser suite against https://tally-loan-simulator.onrender.com, 158 passed, 20 skipped; the served script hash equals a local build of `main`; `/mockServiceWorker.js` is served as JavaScript with `no-cache` and the security headers |
