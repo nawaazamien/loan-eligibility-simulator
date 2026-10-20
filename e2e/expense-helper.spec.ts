@@ -34,7 +34,7 @@ test.describe('expense helper', () => {
     await page.evaluate(() => document.fonts.ready);
   });
 
-  test('expanded: accessible, and fits the page with text spacing increased', async ({ page }) => {
+  test('expanded: accessible and within the page', async ({ page }) => {
     await toggle(page).click();
     await expect(toggle(page)).toHaveAttribute('aria-expanded', 'true');
     await expect(
@@ -42,10 +42,6 @@ test.describe('expense helper', () => {
     ).toBeVisible();
     await expectNoViolations(page);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
-
-    await page.addStyleTag({ content: TEXT_SPACING });
-    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
-    await expect(useTotal(page)).toBeVisible();
   });
 
   test('invalid: errors are linked, the first is focused, and the page stays accessible', async ({
@@ -116,5 +112,20 @@ test.describe('expense helper', () => {
 
     await calculate(page).click();
     await expect(estimate(page).getByRole('status')).toBeEmpty();
+  });
+});
+
+test.describe('expense helper with text spacing increased (WCAG 1.4.12)', () => {
+  // People apply these overrides with a browser extension or user stylesheet, which a page's
+  // CSP does not restrict. The test injects a <style> element instead, so it bypasses the CSP
+  // the way those tools do; every other test runs under the real policy.
+  test.use({ bypassCSP: true });
+
+  test('fits the page and keeps its actions visible', async ({ page }) => {
+    await page.goto('/');
+    await toggle(page).click();
+    await page.addStyleTag({ content: TEXT_SPACING });
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
+    await expect(useTotal(page)).toBeVisible();
   });
 });

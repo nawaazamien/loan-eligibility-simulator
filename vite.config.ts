@@ -1,6 +1,21 @@
 /// <reference types="vitest/config" />
+import { readFileSync } from 'node:fs';
+
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+
+/**
+ * The production security headers, read from the nginx snippet so there is one source. The
+ * preview server sends them too, so local browser tests run under the same CSP as the
+ * container and the Render site (render.yaml mirrors them; e2e/hosting-config.spec.ts checks).
+ */
+const securityHeaders = Object.fromEntries(
+  [
+    ...readFileSync(new URL('./nginx/security-headers.conf', import.meta.url), 'utf8').matchAll(
+      /^add_header\s+(\S+)\s+"([^"]*)"\s+always;$/gm,
+    ),
+  ].map((match) => [match[1], match[2]]),
+);
 
 export default defineConfig({
   plugins: [react()],
@@ -11,6 +26,7 @@ export default defineConfig({
   preview: {
     port: 4173,
     strictPort: true,
+    headers: securityHeaders,
   },
   test: {
     environment: 'jsdom',
