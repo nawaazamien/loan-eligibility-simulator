@@ -17,7 +17,7 @@
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  font-size: 12.5px;
+  font-size: 0.78125rem;
   color: var(--color-neutral-700);
   font-variant-numeric: tabular-nums;
 }

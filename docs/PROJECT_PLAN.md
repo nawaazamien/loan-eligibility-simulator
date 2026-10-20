@@ -169,6 +169,32 @@ Local Docker was not used in this phase; the container is verified in CI.
 **Validation:** axe suites, Playwright keyboard tests, a documented manual pass (NVDA or Narrator on Windows, plus a mobile emulation check).
 **Depends on:** Phase 2.
 
+**Status:** complete, **with manual verification gaps**: no screen-reader pass, and no real browser zoom, real Windows high contrast, Safari or physical-device checks. These need a person; the checklist is in the review. The full record is [validation/phase-3/ACCESSIBILITY_REVIEW.md](validation/phase-3/ACCESSIBILITY_REVIEW.md).
+
+**Validation record (2026-10-20)**, in `D:\Projects\loan-eligibility-simulator-phase1`, started from `f77d372`:
+
+| Check                                                          | Result                                                                                                                                                                       |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| axe (`npm run test:a11y`)                                      | First run: 24 `color-contrast` failures (two elements). After the fix: **24/24 passed** (8 states × 1280/360/320 px), whole page, no rules disabled                          |
+| `npm run check`                                                | **Passed**: Vitest 164/164 in 9 files                                                                                                                                        |
+| `npm run test:coverage`                                        | **Passed**: model and reducer 100% (thresholds enforced); whole app 99.6% statements, 99.4% branches                                                                         |
+| `npm run test:e2e` (production preview, all projects)          | **Passed**: 89 passed, 4 skipped (intentional, project-specific). Chromium ×3 viewports, Firefox smoke, WebKit smoke, Firefox at a 32 px default font                        |
+| Keyboard review                                                | **Passed** in 4 states × 7 configurations: logical order, exact Shift+Tab reverse, no traps, focus always visible and never covered. One Firefox scroll defect fixed (D-036) |
+| Zoom and reflow                                                | 200% and 400% **emulated** (device scale; the browser zoom UI cannot be automated), plus 320/360 px, phone landscape and a short desktop: no overflow or lost content        |
+| Text spacing (1.4.12)                                          | **Passed** in every state and configuration, with a positive control                                                                                                         |
+| Contrast                                                       | Every pair measured; 2 failures fixed (D-033)                                                                                                                                |
+| Forced colours, browser text size, reduced motion, target size | 2 defects fixed (D-034, D-035); reduced motion and target sizes passed                                                                                                       |
+| Screen readers                                                 | **Not performed**: NVDA is not installed and Narrator's speech cannot be observed in this session. Manual checklist recorded                                                 |
+
+**Acceptance criteria**
+
+| Criterion                                                    | Result                                                                                              |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| Zero axe violations across all states                        | **Met** for the 8 tested states at 3 widths                                                         |
+| Manual keyboard and screen-reader checklist recorded in docs | **Met** for keyboard (performed); the screen-reader checklist is recorded but **not yet performed** |
+| Reflow at 320 px and 400% zoom with no loss of content       | **Met** (400% emulated)                                                                             |
+| Tests cover behaviour rather than implementation details     | **Met**: each Phase 3 regression test fails against its defect                                      |
+
 ### Phase 4 — Production verification, Docker execution, README completion, submission readiness
 
 **Scope:** final production build review (bundle size, no source maps or dev code, headers). Clean-machine Docker build and run, with the browser suite run against the container. CI green on GitHub. A complete README (model, assumptions, accessibility notes, trade-offs, limitations, screenshots). Repository hygiene review (no secrets or private correspondence). Create the public GitHub repository only with the owner's confirmation, and leave the licence to the owner.

@@ -7,6 +7,12 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /*
+   * Keeps a margin around anything scrolled into view: a focused control near the viewport
+   * edge (Firefox otherwise leaves a partly visible control where it is) and the estimate
+   * heading when it is brought into view after a calculation.
+   */
+  scroll-padding-block: 24px;
 }
 
 body {

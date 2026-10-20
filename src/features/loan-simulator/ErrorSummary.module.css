@@ -24,7 +24,7 @@
 
 .heading {
   margin-bottom: 6px;
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 
 .list {
@@ -35,7 +35,10 @@
   gap: 4px;
 }
 
+/* A little vertical padding keeps single-line links at least 24px tall (WCAG 2.5.8). */
 .link {
+  display: inline-block;
+  padding-block: 2px;
   color: var(--color-critical);
   font-weight: 500;
   overflow-wrap: anywhere;

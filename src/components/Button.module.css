@@ -23,23 +23,25 @@
 .primary {
   position: relative;
   padding: 0 26px;
-  font-size: 18px;
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+  font-size: 1.125rem;
+  background: var(--color-action);
+  border-color: var(--color-action);
   color: var(--color-bg);
 }
 
 .primary:hover:not(:disabled) {
-  background: var(--color-accent-600);
+  background: var(--color-action-hover);
+  border-color: var(--color-action-hover);
 }
 
 .primary:active:not(:disabled) {
-  background: var(--color-accent-700);
+  background: var(--color-action-active);
+  border-color: var(--color-action-active);
 }
 
 .secondary {
   padding: 0 22px;
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 
 .secondary:hover:not(:disabled) {
@@ -56,7 +58,7 @@
   border-color: transparent;
   font-family: var(--font-body);
   font-weight: 500;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--color-accent-700);
 }
 

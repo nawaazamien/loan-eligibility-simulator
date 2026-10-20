@@ -175,3 +175,13 @@ From driving the live reference and the Phase 2 build through the same steps (sc
 - **Sub-R1 gaps.** The reference would say "R0 a month above it" one cent over the limit; the build says "R0.01" (D-028).
 - **Recalculate button** is 44 px tall rather than 40 px (D-031).
 - **Shortfalls.** As in the reference, the breakdown bar never draws a negative segment: "Left over" is omitted and the shortfall is stated in words, while the summary shows the negative amount ("−R398 a month").
+
+## 16. Phase 3 accessibility deviations
+
+The accessibility review ([validation/phase-3/ACCESSIBILITY_REVIEW.md](validation/phase-3/ACCESSIBILITY_REVIEW.md)) changed the look in three small ways. Each uses colours from the design's own ramps:
+
+- **Filled controls are darker.** Calculate and the selected term use accent-700 (`#416180`) instead of the base accent (`#5980a6`), because light text on the base accent is 3.71:1 (D-033).
+- **Text fields have a visible border**: neutral-600 (`#7a7a7d`, 3.82:1) instead of the 16% hairline (1.38:1), which left a field barely distinguishable from the page (D-033).
+- **Text follows the browser's font-size setting** (`rem`); at the default size nothing moves (D-035).
+
+The term-group lines, button outlines, corner marks and outcome borders keep the design's hairline weight; the review explains why that is acceptable there.

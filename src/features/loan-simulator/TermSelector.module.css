@@ -23,13 +23,20 @@
 }
 
 .options {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  /*
+   * Five equal cells in a row at normal text sizes (each at least 3rem, 48px; the narrowest
+   * form row is 252px). With larger text the cells wrap onto more rows instead of being
+   * clipped, and the last row's cells stretch so no empty slot is left. The 1px gap over the
+   * divider background draws the lines between cells in either layout.
+   */
+  gap: 1px;
   width: 100%;
   max-width: var(--field-max);
+  background: var(--color-divider);
   border: var(--border);
   border-radius: var(--radius);
-  overflow: hidden;
 }
 
 .option {
@@ -38,16 +45,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  flex: 1 1 3rem;
   min-width: 0;
   min-height: 52px;
   padding: 6px 4px;
   line-height: 1.15;
   text-align: center;
+  background: var(--color-bg);
   cursor: pointer;
-}
-
-.option + .option {
-  border-left: var(--border);
 }
 
 /* The native radio stays in the accessibility tree and keyboard order; only its dot is hidden. */
@@ -61,12 +66,12 @@
 }
 
 .option:has(.radio:checked) {
-  background: var(--color-accent);
+  background: var(--color-action);
   color: var(--color-bg);
 }
 
 .option:not(:has(.radio:checked)):hover {
-  background: var(--color-hover-tint);
+  background: linear-gradient(var(--color-hover-tint), var(--color-hover-tint)), var(--color-bg);
 }
 
 .option:has(.radio:focus-visible) {
@@ -74,18 +79,44 @@
   outline-offset: -2px;
 }
 
-/* A checked cell is already accent-filled, so its focus ring uses the text colour to stay visible. */
+/* A checked cell is already filled, so its ring is drawn inside the fill in the page colour (5.8:1). */
 .option:has(.radio:checked:focus-visible) {
-  outline-color: var(--color-text);
+  outline-color: var(--color-bg);
+  outline-offset: -5px;
 }
 
 .number {
   font-family: var(--font-heading);
   font-weight: var(--font-heading-weight);
-  font-size: 19px;
+  font-size: 1.1875rem;
   font-variant-numeric: tabular-nums;
 }
 
 .unit {
-  font-size: 12px;
+  font-size: 0.75rem;
+}
+
+/*
+ * Forced colours (Windows high contrast) replace author backgrounds, which made the selected
+ * term indistinguishable from the others. Use the system's selection colours instead.
+ */
+@media (forced-colors: active) {
+  /* The gap lines are a background, which forced colours remove; draw real borders instead. */
+  .options {
+    gap: 0;
+  }
+
+  .option {
+    border: 1px solid CanvasText;
+  }
+
+  .option:has(.radio:checked) {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .option:has(.radio:checked:focus-visible) {
+    outline-color: HighlightText;
+  }
 }

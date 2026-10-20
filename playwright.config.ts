@@ -17,17 +17,42 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   projects: [
+    // Chromium runs the full suite (layout, interactions, axe) at three widths.
     {
       name: 'desktop',
+      testIgnore: /(smoke|large-text)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
     },
     {
       name: 'mobile',
+      testIgnore: /(smoke|large-text)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 360, height: 800 }, hasTouch: true },
     },
     {
       name: 'narrow-320',
+      testIgnore: /(smoke|large-text)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 320, height: 640 } },
+    },
+    // Firefox and WebKit run a core-flow smoke suite rather than every test again.
+    // Playwright's WebKit is the WebKit engine on this OS, not Safari on a real iPhone.
+    {
+      name: 'firefox',
+      testMatch: /smoke\.spec\.ts/,
+      use: { ...devices['Desktop Firefox'], viewport: { width: 1280, height: 900 } },
+    },
+    {
+      name: 'firefox-large-text',
+      testMatch: /large-text\.spec\.ts/,
+      use: {
+        ...devices['Desktop Firefox'],
+        viewport: { width: 360, height: 800 },
+        launchOptions: { firefoxUserPrefs: { 'font.size.variable.x-western': 32 } },
+      },
+    },
+    {
+      name: 'webkit',
+      testMatch: /smoke\.spec\.ts/,
+      use: { ...devices['Desktop Safari'], viewport: { width: 390, height: 844 }, hasTouch: true },
     },
   ],
   ...(externalBaseUrl

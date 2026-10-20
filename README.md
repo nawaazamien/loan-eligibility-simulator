@@ -13,7 +13,7 @@ Built as a recruitment assignment for a Front-End Software Engineer role. "Tally
 | 0     | Design import, tooling, container, application shell         | **Done**, verified locally and in CI ([record](docs/PROJECT_PLAN.md#phase-0--design-import-foundation-tooling-container-application-shell)) |
 | 1     | Responsive form and results UI matching the design           | **Done** ([record](docs/PROJECT_PLAN.md#phase-1--responsive-interface-matching-the-design))                                                 |
 | 2     | Simulation model, validation, result and stale states, reset | **Done** ([record](docs/PROJECT_PLAN.md#phase-2--deterministic-simulation-validation-result-states-stale-results-reset))                    |
-| 3     | Accessibility and responsive refinement, test coverage       | Planned                                                                                                                                     |
+| 3     | Accessibility and responsive refinement, test coverage       | **Done**, with manual verification gaps ([review](docs/validation/phase-3/ACCESSIBILITY_REVIEW.md))                                         |
 | 4     | Production verification and submission readiness             | Planned                                                                                                                                     |
 
 **What works now:**
@@ -59,9 +59,13 @@ npm run typecheck     # tsc, strict
 npm run lint          # ESLint (type-aware)
 npm run format:check  # Prettier
 npm test              # Vitest unit and component tests
-npm run test:e2e      # Playwright: builds, serves the production bundle, tests at 1280/360/320 px
+npm run test:coverage # the same, with a coverage report in coverage/ and 100% thresholds on the model and reducer
+npm run test:e2e      # Playwright against the production bundle: Chromium at 1280/360/320 px, Firefox and WebKit smoke
+npm run test:a11y     # only the axe accessibility checks (Chromium)
 npm run check         # typecheck + lint + format:check + test + build
 ```
+
+Browser tests need Playwright's browsers once: `npx playwright install chromium firefox webkit`.
 
 To run the browser tests against an already-running server, such as the Docker container:
 
@@ -132,9 +136,11 @@ Money is integer cents throughout; the only floating-point step is the amortisat
 - [Design handoff](docs/DESIGN_HANDOFF.md): what the imported design specifies
 - [Decisions](docs/DECISIONS.md): technical and product decisions, with reasons
 - [Simulation model](docs/SIMULATION_MODEL.md): the fictional model, rounding rules and verified reference cases
+- [Accessibility review](docs/validation/phase-3/ACCESSIBILITY_REVIEW.md): what was checked, how, what was fixed, and what still needs a person
 
 ## Current limitations
 
-- Accessibility is built in (native labelled controls, fieldsets, keyboard operation, visible focus), but the full WCAG 2.2 audit, including automated axe checks and zoom testing, is planned for Phase 3.
+- Accessibility: automated axe checks passed for every tested state, and keyboard, contrast, zoom emulation, text spacing, larger browser text and forced colours were reviewed and fixed where needed ([review](docs/validation/phase-3/ACCESSIBILITY_REVIEW.md)). **No screen-reader pass has been done yet**, and real browser zoom, real Windows high contrast, Safari and physical phones remain manual checks (checklist in the review). This is not a WCAG conformance claim.
+- WebKit coverage is Playwright's WebKit build, not Safari on a real iPhone or Mac.
 - Light theme only, as designed.
 - No licence has been chosen yet. That is the repository owner's decision.

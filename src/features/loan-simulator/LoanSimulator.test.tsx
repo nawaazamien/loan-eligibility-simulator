@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
+import type { MockInstance } from 'vitest';
 
 import { randFigures } from '../../test/figures';
 import { LoanSimulator } from './LoanSimulator';
@@ -444,5 +445,61 @@ describe('LoanSimulator estimate panel', () => {
     toggle.focus();
     await user.keyboard('{Enter}');
     expect(panel).not.toBeVisible();
+  });
+});
+
+describe('LoanSimulator scrolling to the estimate', () => {
+  let scrollIntoView: MockInstance<Element['scrollIntoView']>;
+
+  /** Answers media queries as a phone (or not), with or without a reduced-motion preference. */
+  function mediaAs({ narrow, reduceMotion }: { narrow: boolean; reduceMotion: boolean }) {
+    vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query: string) =>
+        ({
+          matches: query.includes('max-width') ? narrow : query.includes('reduce') && reduceMotion,
+          media: query,
+          onchange: null,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          dispatchEvent: vi.fn(() => false),
+        }) satisfies MediaQueryList,
+    );
+  }
+
+  beforeEach(() => {
+    scrollIntoView = vi
+      .spyOn(Element.prototype, 'scrollIntoView')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  async function calculateCase1() {
+    const { user } = setup();
+    await enter(user, CASE_1);
+    await user.click(calculate());
+    expect(estimateHeading()).toHaveFocus();
+  }
+
+  it('scrolls the estimate heading into view smoothly on a phone', async () => {
+    mediaAs({ narrow: true, reduceMotion: false });
+    await calculateCase1();
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+  });
+
+  it('jumps without animation when reduced motion is preferred', async () => {
+    mediaAs({ narrow: true, reduceMotion: true });
+    await calculateCase1();
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'start' });
+  });
+
+  it('does not scroll on wide screens, where the estimate is beside the form', async () => {
+    mediaAs({ narrow: false, reduceMotion: false });
+    await calculateCase1();
+    expect(scrollIntoView).not.toHaveBeenCalled();
   });
 });

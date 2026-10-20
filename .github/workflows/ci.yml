@@ -29,8 +29,15 @@ jobs:
         run: npm run lint
       - name: Formatting
         run: npm run format:check
-      - name: Unit and component tests
-        run: npm test
+      - name: Unit and component tests, with coverage thresholds for the model and reducer
+        run: npm run test:coverage
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: coverage
+          retention-days: 7
       - name: Production build
         run: npm run build
 
@@ -45,8 +52,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install Chromium, Firefox and WebKit
+        run: npx playwright install --with-deps chromium firefox webkit
       - name: Playwright
         run: npm run test:e2e
       - name: Upload Playwright report
@@ -93,8 +100,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install Chromium, Firefox and WebKit
+        run: npx playwright install --with-deps chromium firefox webkit
       - name: Playwright against the container
         run: npm run test:e2e
         env:

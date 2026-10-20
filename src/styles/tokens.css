@@ -28,6 +28,7 @@
   /* Neutral ramp */
   --color-neutral-100: #f5f5f8;
   --color-neutral-400: #b7b7ba;
+  --color-neutral-600: #7a7a7d;
   --color-neutral-700: #5d5d60;
   --color-neutral-800: #424244;
 
@@ -43,12 +44,12 @@
   --font-heading: 'Barlow Condensed', system-ui, sans-serif;
   --font-heading-weight: 600;
   --font-body: 'Barlow', system-ui, sans-serif;
-  --text-body: 15px;
+  --text-body: 0.9375rem;
   --leading-body: 1.55;
-  --text-label: 15px;
-  --text-hint: 13.5px;
+  --text-label: 0.9375rem;
+  --text-hint: 0.84375rem;
   --leading-hint: 1.45;
-  --text-input: 16px; /* 16px or more stops iOS zooming into focused fields */
+  --text-input: 1rem; /* 16px or more stops iOS zooming into focused fields */
 
   /* Shape: everything square, no shadows (Industry "blueprint" direction) */
   --radius: 0;
@@ -59,7 +60,16 @@
   --color-active-tint: color-mix(in srgb, var(--color-text) 14%, transparent);
   --color-accent-hover-tint: color-mix(in srgb, var(--color-accent) 10%, transparent);
   --color-accent-active-tint: color-mix(in srgb, var(--color-accent) 18%, transparent);
-  --color-input-border-hover: color-mix(in srgb, var(--color-text) 45%, transparent);
+  /*
+   * Contrast-checked roles (docs/validation/phase-3/ACCESSIBILITY_REVIEW.md, D-033).
+   * Light text on the base accent is only 3.7:1, so filled controls use accent-700 (5.8:1).
+   * A text field's border is what identifies it, so it needs 3:1 against the page.
+   */
+  --color-action: var(--color-accent-700);
+  --color-action-hover: var(--color-accent-800);
+  --color-action-active: var(--color-accent-900);
+  --color-input-border: var(--color-neutral-600);
+  --color-input-border-hover: var(--color-neutral-800);
   --disabled-opacity: 0.45;
 
   /* Layout — mobile-first values; widened at the single 760px breakpoint below */
@@ -69,10 +79,10 @@
   --intro-gap: 22px;
   --grid-gap: 28px;
   --card-pad: 20px 18px;
-  --h1-size: 34px;
+  --h1-size: 2.125rem;
   --field-max: 100%;
   --assumptions-cols: minmax(0, 1fr);
-  --figure-size: 48px;
+  --figure-size: 3rem;
 }
 
 @media (min-width: 760px) {
@@ -82,9 +92,9 @@
     --intro-gap: 32px;
     --grid-gap: 32px;
     --card-pad: 28px 30px;
-    --h1-size: 46px;
+    --h1-size: 2.875rem;
     --field-max: 420px;
     --assumptions-cols: 130px minmax(0, 1fr);
-    --figure-size: 60px;
+    --figure-size: 3.75rem;
   }
 }
