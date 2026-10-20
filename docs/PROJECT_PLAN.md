@@ -186,6 +186,14 @@ Local Docker was not used in this phase; the container is verified in CI.
 | Forced colours, browser text size, reduced motion, target size | 2 defects fixed (D-034, D-035); reduced motion and target sizes passed                                                                                                       |
 | Screen readers                                                 | **Not performed**: NVDA is not installed and Narrator's speech cannot be observed in this session. Manual checklist recorded                                                 |
 
+_CI run_: GitHub Actions [run 39405163945](https://github.com/nawaazamien/loan-eligibility-simulator/actions/runs/39405163945) on commit `4e0c00a` (ubuntu-latest). Every job passed with no retries.
+
+| Job                                 | Result                                                                                                                            |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Static checks, unit tests and build | **Passed**: Vitest 164/164 with the coverage thresholds enforced; coverage report uploaded as an artifact                         |
+| Browser tests (production preview)  | **Passed**: 89 passed, 4 skipped (Chromium, Firefox, WebKit)                                                                      |
+| Docker image build and smoke test   | **Passed**: container checks plus the same browser suite against the running container in all three engines: 89 passed, 4 skipped |
+
 **Acceptance criteria**
 
 | Criterion                                                    | Result                                                                                              |
