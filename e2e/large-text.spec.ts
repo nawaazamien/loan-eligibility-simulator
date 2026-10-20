@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { horizontalOverflow } from './helpers';
+import { calculateEstimate, estimate, horizontalOverflow } from './helpers';
 
 /**
  * Runs in the "firefox-large-text" project (playwright.config.ts), which raises Firefox's
@@ -29,5 +29,28 @@ test.describe('larger default text size', () => {
       });
     });
     expect(allInside).toBe(true);
+  });
+
+  test('keeps the longest repayment figure whole, on one line', async ({ page }) => {
+    await page.goto('/');
+    // R250 000 over 12 months gives the longest figure the model can produce: R23 167.84.
+    await calculateEstimate(page, {
+      income: '1000000',
+      expenses: '0',
+      debt: '0',
+      loan: '250000',
+      term: 12,
+    });
+
+    const figure = estimate(page).getByText('R23 167.84', { exact: true });
+    await expect(figure).toBeVisible();
+    const { lines, fontSize } = await figure.evaluate((el) => {
+      const size = parseFloat(getComputedStyle(el).fontSize);
+      return { lines: Math.round(el.getBoundingClientRect().height / size), fontSize: size };
+    });
+    expect(lines).toBe(1);
+    // Still clearly the largest text on the page (body text is 30px here).
+    expect(fontSize).toBeGreaterThanOrEqual(48);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
   });
 });

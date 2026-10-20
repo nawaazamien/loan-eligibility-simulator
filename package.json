@@ -5,7 +5,7 @@
   "description": "Tally (demo): an illustrative, client-only loan eligibility simulator built as a front-end engineering assessment.",
   "type": "module",
   "engines": {
-    "node": ">=22.12"
+    "node": "^22.22.2 || ^24.15.0"
   },
   "scripts": {
     "dev": "vite",

@@ -185,3 +185,8 @@ The accessibility review ([validation/phase-3/ACCESSIBILITY_REVIEW.md](validatio
 - **Text follows the browser's font-size setting** (`rem`); at the default size nothing moves (D-035).
 
 The term-group lines, button outlines, corner marks and outcome borders keep the design's hairline weight; the review explains why that is acceptable there.
+
+## 17. Phase 4 corrections
+
+- **Breakdown bar width.** The reference's bar segments cannot shrink, so the 2px gaps push the bar about 5px past the panel's edge. The segments now shrink to fit (D-043).
+- **Repayment figure at large text.** The figure is capped relative to the panel width, so the whole amount stays on one line when the browser's text size is large. At normal sizes it is unchanged (D-042).

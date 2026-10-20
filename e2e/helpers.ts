@@ -36,7 +36,8 @@ export const field = (page: Page, label: string) =>
 export const term = (page: Page, months: number) =>
   page.getByRole('radio', { name: `${String(months)} months` });
 export const estimate = (page: Page) => page.getByRole('region', { name: 'Your estimate' });
-export const calculate = (page: Page) => page.getByRole('button', { name: 'Calculate estimate' });
+export const calculate = (page: Page) =>
+  page.getByRole('button', { name: 'Calculate estimate', exact: true });
 
 export async function enter(page: Page, entry: Entry) {
   await field(page, 'Monthly take-home income').fill(entry.income);

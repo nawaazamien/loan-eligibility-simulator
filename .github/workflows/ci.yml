@@ -14,14 +14,20 @@ concurrency:
 
 jobs:
   checks:
-    name: Static checks, unit tests and build
+    name: Static checks, unit tests and build (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Both Node lines allowed by package.json "engines"; 24 is the .nvmrc default.
+        node: ['22', '24']
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version-file: .nvmrc
+          node-version: ${{ matrix.node }}
           cache: npm
+      - run: node --version
       - run: npm ci
       - name: Type check
         run: npm run typecheck
@@ -32,7 +38,7 @@ jobs:
       - name: Unit and component tests, with coverage thresholds for the model and reducer
         run: npm run test:coverage
       - name: Upload coverage report
-        if: always()
+        if: always() && matrix.node == '24'
         uses: actions/upload-artifact@v7
         with:
           name: coverage
@@ -70,19 +76,25 @@ jobs:
     needs: checks
     steps:
       - uses: actions/checkout@v7
-      - uses: docker/setup-buildx-action@v4
-      - name: Build image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          load: true
-          tags: loan-eligibility-simulator:ci
-      - name: Run container and check it serves the app and its assets
+      # The README's own commands, verbatim (the run adds -d and --name to keep it in the background).
+      - name: Build image (README command)
+        run: docker build -t loan-eligibility-simulator .
+      - name: Check the image holds only the production files
         run: |
-          docker run -d --name app -p 8080:8080 loan-eligibility-simulator:ci
+          docker run --rm --entrypoint find loan-eligibility-simulator /usr/share/nginx/tally -type f | sort | tee image-files.txt
+          if grep -vE '^/usr/share/nginx/tally/(index\.html|favicon\.svg|third-party-notices\.txt|assets/[A-Za-z0-9._-]+\.(js|css|woff2?))$' image-files.txt; then
+            echo "Unexpected files in the image (listed above)"; exit 1
+          fi
+          ! grep -E '\.map$' image-files.txt
+      - name: Run container (README command) and check it serves the app and its assets
+        run: |
+          docker run -d --name app -p 8080:8080 loan-eligibility-simulator
           for i in $(seq 1 20); do curl -fsS http://127.0.0.1:8080/ > index.html && break; sleep 1; done
           grep -q '<div id="root">' index.html
           test "$(docker inspect app --format '{{.Config.User}}')" = "101"
+          test "$(docker exec app id -u)" = "101"
+          curl -fsS -o /dev/null http://127.0.0.1:8080/third-party-notices.txt
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/50x.html)" = "404"
           for asset in $(grep -oE '/assets/[^"]+' index.html); do
             curl -fsS -o /dev/null "http://127.0.0.1:8080${asset}"
           done
@@ -92,6 +104,7 @@ jobs:
           grep -qi '^x-content-type-options: nosniff' index.headers
           grep -qi '^x-frame-options: DENY' index.headers
           grep -qi '^referrer-policy: no-referrer' index.headers
+          grep -qi '^permissions-policy: camera=()' index.headers
           asset="$(grep -oE '/assets/[^"]+' index.html | head -n 1)"
           curl -fsSI "http://127.0.0.1:8080${asset}" | grep -qi '^cache-control: public, max-age=31536000, immutable'
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/does-not-exist)" = "404"

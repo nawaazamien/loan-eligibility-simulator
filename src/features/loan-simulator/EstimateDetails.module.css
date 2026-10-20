@@ -75,6 +75,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  container-type: inline-size;
 }
 
 .figureLabel {
@@ -85,7 +86,13 @@
 .figureValue {
   font-family: var(--font-heading);
   font-weight: var(--font-heading-weight);
-  font-size: var(--figure-size);
+  /*
+   * The design size, capped at 19% of the panel's width so the whole amount stays on one line
+   * when the browser's text size is large on a narrow screen (the longest figure, R23 167.84,
+   * is about 4.8em wide). At normal sizes the cap is never reached. The floor keeps it at
+   * least 1.5x the root text size; breaking anywhere remains the last resort, never scrolling.
+   */
+  font-size: max(1.5rem, min(var(--figure-size), 19cqi));
   line-height: 1;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -147,8 +154,10 @@
   height: 14px;
 }
 
+/* Widths are shares of 100%; letting segments shrink makes room for the 2px gaps between them. */
 .segment {
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .expenses {

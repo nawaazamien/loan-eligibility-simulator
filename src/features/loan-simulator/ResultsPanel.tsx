@@ -54,6 +54,7 @@ export function ResultsPanel({ result, isStale, onRecalculate, headingRef }: Res
                   </p>
                   <Button
                     variant="secondary"
+                    keepFocusOnPress
                     onClick={onRecalculate}
                     className={styles.recalculate}
                   >

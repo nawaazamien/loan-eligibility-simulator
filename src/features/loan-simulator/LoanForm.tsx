@@ -136,12 +136,13 @@ export function LoanForm({ state, dispatch, isStale, summaryRef }: LoanFormProps
 
       <div className={styles.actions}>
         <div className={styles.buttons}>
-          <Button variant="primary" type="submit" className={styles.calculate}>
+          <Button variant="primary" type="submit" keepFocusOnPress className={styles.calculate}>
             <FrameCorners />
             Calculate estimate
           </Button>
           <Button
             variant="secondary"
+            keepFocusOnPress
             onClick={() => {
               dispatch({ type: 'reset' });
               incomeRef.current?.focus();

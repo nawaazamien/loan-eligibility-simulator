@@ -6,17 +6,18 @@ Work proceeds one phase at a time: implement, validate, commit, report, stop.
 
 ## Requirement sources
 
-| Requirement                                                                                                                           | Source                                              |
-| ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| Responsive UI for income, expenses and loan amount, showing estimated eligibility from mocked assumptions                             | **Employer**                                        |
-| Production-grade implementation                                                                                                       | **Employer**                                        |
-| Runnable Dockerfile that builds and runs the app                                                                                      | **Employer**                                        |
-| README covering build, run and test                                                                                                   | **Employer**                                        |
-| Public GitHub repository for submission                                                                                               | **Employer**                                        |
-| React, Vite, strict TypeScript, Vitest + RTL, Playwright, ESLint/Prettier, CI                                                         | **Employer** (engineering brief)                    |
-| Fictional assumptions only; no implied approval, offer or bureau check; no personal data persistence                                  | **Employer** (engineering brief)                    |
-| Product "Tally" + Demo tag, layout, tokens, typography, copy, states, interactions, the 19.5% / R69 / 40% model, debt and term inputs | **Design** ([DESIGN_HANDOFF.md](DESIGN_HANDOFF.md)) |
-| Stack versions, folder structure, integer-cent arithmetic, nginx runtime, caching, CSP, test strategy                                 | **Implementation** ([DECISIONS.md](DECISIONS.md))   |
+The employer's brief asks for five things (the first five rows). Everything else, including the stack, the tools, CI and the stricter quality rules, was chosen for this project: by the approved design, by the project's own rules in [AGENTS.md](../AGENTS.md), or as an implementation decision.
+
+| Requirement                                                                                                                                                                                                                | Source                                              |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Responsive UI for income, expenses and loan amount, showing estimated eligibility from mocked assumptions                                                                                                                  | **Employer**                                        |
+| Production-grade implementation                                                                                                                                                                                            | **Employer**                                        |
+| Runnable Dockerfile that builds and runs the app                                                                                                                                                                           | **Employer**                                        |
+| README covering build, run and test                                                                                                                                                                                        | **Employer**                                        |
+| Public GitHub repository for submission                                                                                                                                                                                    | **Employer**                                        |
+| Product "Tally" + Demo tag, layout, tokens, typography, copy, states, interactions, the 19.5% / R69 / 40% model, debt and term inputs                                                                                      | **Design** ([DESIGN_HANDOFF.md](DESIGN_HANDOFF.md)) |
+| Estimate language only; no implied approval, offer or bureau check; no personal data collected or persisted; WCAG 2.2 AA target; strict TypeScript; pure model separate from components; tests before each commit          | **Project rules** ([AGENTS.md](../AGENTS.md))       |
+| React, Vite, TypeScript, CSS Modules, Vitest + Testing Library, Playwright, axe, ESLint/Prettier, GitHub Actions CI, stack versions, folder structure, integer-cent arithmetic, nginx runtime, caching, CSP, test strategy | **Implementation** ([DECISIONS.md](DECISIONS.md))   |
 
 ## Phases
 
@@ -211,3 +212,26 @@ _CI run_: GitHub Actions [run 39405163945](https://github.com/nawaazamien/loan-e
 
 **Validation:** fresh-clone rehearsal, CI run link, container e2e run, final checklist.
 **Depends on:** Phase 3, plus the owner's GitHub decisions (remote name, visibility, licence).
+
+**Status:** complete. **Ready for submission with documented manual verification gaps** (screen reader, real browser zoom, real Windows high contrast, Safari or a physical phone). The full record is [validation/phase-4/SUBMISSION_REVIEW.md](validation/phase-4/SUBMISSION_REVIEW.md).
+
+**Validation record (2026-10-20)**, in `D:\Projects\loan-eligibility-simulator-phase1`, started from `51c164a`:
+
+| Check                                     | Result                                                                                                                                                                                                           |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Customer walkthrough, 1280 and 360 px     | Every flow completed, with no console errors and no failed or off-origin requests. Found the dropped-click defect (D-041), now fixed                                                                             |
+| Fresh clone following the README          | Every documented command passes after four README corrections (browsers, preview URL, Node range, PowerShell syntax)                                                                                             |
+| Production review                         | No source maps, development code, storage or external requests. Licence notices added (D-046) and base-image pages excluded (D-044). JS 249.8 KB (77.8 KB gzip), CSS 17.9 KB (4.3 KB gzip), fonts loaded 89.3 KB |
+| `npm audit`                               | 0 vulnerabilities                                                                                                                                                                                                |
+| `npm run check` / `npm run test:coverage` | Passed: 164/164; model and reducer 100%                                                                                                                                                                          |
+| `npm run test:e2e`                        | 99 passed, 4 skipped                                                                                                                                                                                             |
+| Docker                                    | Local engine unavailable; verified in CI with the README's commands                                                                                                                                              |
+
+**Acceptance criteria**
+
+| Criterion                                                                         | Result                                                                |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `docker build` and `docker run` work from a fresh clone using the README commands | **Met in CI** (clean checkout, exact commands); not run locally       |
+| CI passes all jobs                                                                | See the CI run below                                                  |
+| The README is accurate to the shipped behaviour                                   | **Met**: verified from a fresh clone, and four inaccuracies corrected |
+| The repository is public and the URL is recorded                                  | **Met**: https://github.com/nawaazamien/loan-eligibility-simulator    |

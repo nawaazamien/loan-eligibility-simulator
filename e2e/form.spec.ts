@@ -65,7 +65,9 @@ test.describe('loan form', () => {
 
     // The term group is a single tab stop; Tab moves on to Calculate.
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('button', { name: 'Calculate estimate' })).toBeFocused();
+    await expect(
+      page.getByRole('button', { name: 'Calculate estimate', exact: true }),
+    ).toBeFocused();
   });
 
   test('fills example values, then resets to the defaults with focus on income', async ({

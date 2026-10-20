@@ -15,7 +15,8 @@ FROM nginxinc/nginx-unprivileged:1.29-alpine AS runtime
 
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
-COPY --from=build /app/dist /usr/share/nginx/html
+# A directory of its own, so the base image's default pages (index.html, 50x.html) are not served.
+COPY --from=build /app/dist /usr/share/nginx/tally
 
 # The base image already runs as the non-root "nginx" user (uid 101).
 USER 101

@@ -3,7 +3,8 @@ import { expect, test, type Page } from '@playwright/test';
 const field = (page: Page, label: string) =>
   page.getByRole('textbox', { name: `${label} in rand` });
 const estimate = (page: Page) => page.getByRole('region', { name: 'Your estimate' });
-const calculate = (page: Page) => page.getByRole('button', { name: 'Calculate estimate' });
+const calculate = (page: Page) =>
+  page.getByRole('button', { name: 'Calculate estimate', exact: true });
 
 interface Entry {
   income: string;
@@ -136,4 +137,50 @@ test.describe('estimate', () => {
     await expect(estimate(page)).toContainText('Enter your details and select Calculate estimate');
     await expect(estimate(page).getByText('Above the demo affordability limit')).toHaveCount(0);
   });
+});
+
+test.describe('pressing a button right after editing a field', () => {
+  // Leaving a field re-validates it once a calculation has been tried, and a new inline error
+  // moves everything below it. The press that caused the blur must still count.
+  test('Calculate reports the errors on the first press', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Use example values' }).click();
+    await calculate(page).click();
+    await expect(page.getByRole('heading', { name: 'Your estimate' })).toBeFocused();
+
+    await field(page, 'Monthly take-home income').fill('abc');
+    await field(page, 'Loan amount').fill('');
+    await calculate(page).click();
+
+    await expect(page.getByRole('alert')).toBeFocused();
+    await expect(page.getByRole('alert')).toContainText('Check 2 fields before calculating');
+  });
+
+  test('Reset works on the first press', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Use example values' }).click();
+    await calculate(page).click();
+
+    await field(page, 'Loan amount').fill('');
+    await page.getByRole('button', { name: 'Reset' }).click();
+
+    await expect(field(page, 'Monthly take-home income')).toBeFocused();
+    await expect(field(page, 'Loan amount')).toHaveValue('50 000');
+  });
+});
+
+test('the breakdown bar stays inside the estimate panel', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Use example values' }).click();
+  await calculate(page).click();
+
+  // The bar is decorative (aria-hidden); its four segments and their gaps must fit the panel.
+  const overhang = await estimate(page).evaluate((panel) => {
+    const style = getComputedStyle(panel);
+    const contentRight = panel.getBoundingClientRect().right - parseFloat(style.paddingRight);
+    const lastSegment = panel.querySelector('div[aria-hidden="true"]')?.lastElementChild;
+    return lastSegment ? lastSegment.getBoundingClientRect().right - contentRight : null;
+  });
+  expect(overhang).not.toBeNull();
+  expect(overhang).toBeLessThanOrEqual(0.5);
 });
