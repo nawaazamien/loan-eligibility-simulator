@@ -64,7 +64,7 @@ E2E_BASE_URL=http://127.0.0.1:8080 npm run test:e2e           # bash, zsh
 $env:E2E_BASE_URL = "http://127.0.0.1:8080"; npm run test:e2e; Remove-Item Env:E2E_BASE_URL   # PowerShell
 ```
 
-What runs: 164 unit and component tests, with 100% coverage of the pricing model and the form reducer enforced by `test:coverage`, and 103 browser test runs (99 run and 4 skipped by design, because they apply to one engine or width). Chromium runs everything: layout, interactions, results and axe checks at 1280, 360 and 320 px. Firefox and WebKit run the core flows. CI runs all of this on every push, then runs the browser suite a second time against the built Docker image.
+What runs: 208 unit and component tests, with 100% coverage enforced by `test:coverage` for the pricing model, the form reducer and the expense helper's state, and 121 browser test runs (117 run and 4 skipped by design, because they apply to one engine or width). Chromium runs everything: layout, interactions, results and axe checks at 1280, 360 and 320 px. Firefox and WebKit run the core flows. CI runs all of this on every push, then runs the browser suite a second time against the built Docker image.
 
 ## How it works
 
@@ -85,6 +85,7 @@ nginx/, Dockerfile               runtime server, headers and caching
 - **Pure model, thin UI.** Parsing, validation, the calculation and all result wording are plain TypeScript in `model/`, unit-tested without React. Components only render what the model returns.
 - **Editing versus calculating.** Fields keep exactly what was typed and are tidied only when you leave them (`28500` → `28 500`). Empty and malformed text is never turned into zero. Calculate validates everything at once, with a linked error summary and inline errors.
 - **One snapshot per result.** Every figure on screen comes from the last successful calculation. Change an input and the estimate stays visible but is marked out of date; change it back and it is current again. Formatting alone never counts as a change.
+- **Optional expense helper.** "Help me calculate my expenses", under the expenses field, breaks living costs into 8 categories (blank counts as R0) and shows a running total. It is only a draft: the expenses field changes only when you select **Use this total**, and the calculation always reads that one field. An unchanged total leaves an estimate current; a different total marks it out of date. Opening the helper keeps whatever is already in the field, and Cancel discards the draft.
 
 ### The fictional model
 
@@ -121,6 +122,16 @@ Every decision, with its reason and source, is in [DECISIONS.md](docs/DECISIONS.
 Targeting WCAG 2.2 AA. Automated axe checks pass for every tested state at three widths. Keyboard order and focus, contrast (measured), emulated 200% and 400% zoom, text spacing, larger browser text, forced colours, reduced motion and target sizes were reviewed and fixed where needed. See the [accessibility review](docs/validation/phase-3/ACCESSIBILITY_REVIEW.md).
 
 **Still to be checked by a person:** a screen reader (NVDA or Narrator), the browser's own zoom at 200% and 400%, a real Windows high-contrast theme, and Safari or a physical phone. This is not a WCAG conformance claim.
+
+## Hosting
+
+`render.yaml` defines a free [Render](https://render.com) Static Site for a public demo:
+
+- **Build:** `npm ci && npm run build` on Node 24, publishing `dist/`.
+- **Deploys:** only after CI passes on `main`.
+- **Headers:** the same security headers and caching as the nginx container. There are no rewrite rules, so unknown paths return 404 there too.
+
+Differences from Docker: Render's CDN serves the files and adds HTTPS and Brotli, and the nginx configuration is not used; `render.yaml` reproduces its headers instead.
 
 ## Known limitations
 

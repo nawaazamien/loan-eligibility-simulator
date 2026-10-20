@@ -1,0 +1,56 @@
+# Render Blueprint for the public demo: a free Static Site built from this repository.
+# It mirrors the nginx runtime (nginx/default.conf, nginx/security-headers.conf):
+# the same security headers on every response, no-cache for unhashed files, a year of
+# immutable caching for content-hashed assets, and no rewrite rules, so unknown paths stay 404.
+services:
+  - type: web
+    runtime: static
+    name: tally-loan-simulator
+    repo: https://github.com/nawaazamien/loan-eligibility-simulator
+    branch: main
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    # Deploy only after the commit's GitHub checks (CI) have passed.
+    autoDeployTrigger: checksPass
+    previews:
+      generation: off
+    envVars:
+      # The tested Node line (.nvmrc, package.json "engines").
+      - key: NODE_VERSION
+        value: '24'
+      # The build command already runs `npm ci` from the lockfile.
+      - key: SKIP_INSTALL_DEPS
+        value: 'true'
+    headers:
+      # Security headers on every response (identical to nginx/security-headers.conf).
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: no-referrer
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=(), payment=()
+      # Caching. Each path gets exactly one Cache-Control rule, so no two rules overlap.
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /
+        name: Cache-Control
+        value: no-cache
+      - path: /index.html
+        name: Cache-Control
+        value: no-cache
+      - path: /favicon.svg
+        name: Cache-Control
+        value: no-cache
+      - path: /third-party-notices.txt
+        name: Cache-Control
+        value: no-cache

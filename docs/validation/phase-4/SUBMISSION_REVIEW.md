@@ -130,3 +130,8 @@ No licence has been chosen, as directed by the owner; the brief does not require
 - The only email addresses in history are commit metadata: the author's git address and the `Co-Authored-By: Claude` trailer. There is no recruiter correspondence or contact details.
 - A real lender's name appeared in one sentence of the Phase 0 `SIMULATION_MODEL.md`. It was replaced with neutral wording in Phase 2 and remains only in that earlier commit's history; it is not a secret, and history was not rewritten.
 - Reference assets keep their documented provenance (DESIGN_HANDOFF §12). Font and library licences are in `public/third-party-notices.txt`.
+
+## 10. Phase 5 additions
+
+- **Expense helper** (D-048 to D-051). Locally: 208 unit tests and 117 browser tests passed, 4 skipped; the helper's state is at 100% coverage (enforced). Axe passes for its expanded, invalid, applied, cancelled and stale states. It has not had a real screen-reader pass; that is still item 3 of §7.
+- **Live demo:** `render.yaml` defines a free Render Static Site with the same headers and 404 behaviour as the container. Deployment status and live verification are recorded in [PROJECT_PLAN.md](../../PROJECT_PLAN.md#phase-5--expense-helper-and-live-demo).

@@ -53,4 +53,20 @@ test.describe('larger default text size', () => {
     expect(fontSize).toBeGreaterThanOrEqual(48);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
   });
+
+  test('the expense helper fits and stays usable', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Help me calculate my expenses' }).click();
+    await expect(page.getByRole('button', { name: 'Use this total' })).toBeVisible();
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
+
+    const group = page.getByRole('group', { name: 'Monthly living expenses by category' });
+    const fieldsFit = await group.evaluate((fieldset) => {
+      const right = fieldset.getBoundingClientRect().right;
+      return [...fieldset.querySelectorAll('input')].every(
+        (input) => input.getBoundingClientRect().right <= right + 1,
+      );
+    });
+    expect(fieldsFit).toBe(true);
+  });
 });

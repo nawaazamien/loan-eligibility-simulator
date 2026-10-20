@@ -5,6 +5,7 @@ import {
   type FormAction,
   type FormState,
 } from './formState';
+import type { ExpenseCategory } from './model/expenses';
 
 const run = (...actions: FormAction[]) => actions.reduce(formReducer, initialFormState);
 
@@ -212,5 +213,86 @@ describe('formReducer: result freshness', () => {
     expect(formReducer(example, { type: 'edit', field: 'income', text: '1' }).status).toBeNull();
     expect(formReducer(example, { type: 'selectTerm', term: 60 }).status).toBeNull();
     expect(formReducer(example, { type: 'submit' }).status).toBeNull();
+  });
+});
+
+describe('formReducer: expense helper', () => {
+  const calculated = (): FormState => run(...fill, { type: 'submit' });
+  const applyBreakdown = (state: FormState, entries: [ExpenseCategory, string][]) => {
+    let next = formReducer(state, { type: 'openExpenseHelper' });
+    for (const [category, text] of entries) {
+      next = formReducer(next, { type: 'editExpenseCategory', category, text });
+    }
+    return formReducer(next, { type: 'applyExpenseHelper' });
+  };
+
+  it('editing the draft leaves the form, its status and the estimate untouched', () => {
+    const before = formReducer(calculated(), { type: 'useExample' });
+    let state = formReducer(before, { type: 'openExpenseHelper' });
+    state = formReducer(state, { type: 'editExpenseCategory', category: 'housing', text: '99' });
+    expect(state.values).toEqual(before.values);
+    expect(state.status).toBe('example');
+    expect(state.result).toBe(before.result);
+    expect(isResultStale(state)).toBe(isResultStale(before));
+  });
+
+  it('applying writes the total into the expenses field and marks a changed estimate stale', () => {
+    // Opening puts the current R14 200 under "Other"; the customer moves it into categories.
+    const state = applyBreakdown(calculated(), [
+      ['other', ''],
+      ['housing', '9000'],
+      ['food', '6000'],
+    ]);
+    expect(state.values.expenses).toBe('15 000');
+    expect(state.status).toBe('expensesApplied');
+    expect(state.expenseHelper.open).toBe(false);
+    expect(isResultStale(state)).toBe(true);
+  });
+
+  it('applying a total equal to the calculated one keeps the estimate current', () => {
+    const state = applyBreakdown(calculated(), [
+      ['other', ''],
+      ['housing', '9000'],
+      ['food', '5200'],
+    ]);
+    expect(state.values.expenses).toBe('14 200');
+    expect(isResultStale(state)).toBe(false);
+  });
+
+  it('a failed apply changes nothing outside the helper', () => {
+    const before = calculated();
+    const state = applyBreakdown(before, [['food', 'abc']]);
+    expect(state.values).toEqual(before.values);
+    expect(state.expenseHelper.open).toBe(true);
+    expect(state.expenseHelper.errors.food).toBeDefined();
+  });
+
+  it('applying clears an expenses error after a failed calculation', () => {
+    let state = run({ type: 'submit' });
+    expect(state.errors.expenses).toBeDefined();
+    state = applyBreakdown(state, [['other', '3000']]);
+    expect(state.errors.expenses).toBeUndefined();
+  });
+
+  it('a manual change to another amount forgets the saved breakdown', () => {
+    let state = applyBreakdown(calculated(), [
+      ['other', ''],
+      ['housing', '9000'],
+    ]);
+    expect(state.expenseHelper.applied).not.toBeNull();
+    state = formReducer(state, { type: 'edit', field: 'expenses', text: '9 000.00' });
+    expect(state.expenseHelper.applied).not.toBeNull();
+    state = formReducer(state, { type: 'edit', field: 'expenses', text: '9 500' });
+    expect(state.expenseHelper.applied).toBeNull();
+  });
+
+  it('reset and example values discard the breakdown and close the helper', () => {
+    const applied = applyBreakdown(calculated(), [['housing', '9000']]);
+    for (const action of [{ type: 'reset' }, { type: 'useExample' }] as const) {
+      const open = formReducer(applied, { type: 'openExpenseHelper' });
+      const after = formReducer(open, action);
+      expect(after.expenseHelper.open).toBe(false);
+      expect(after.expenseHelper.applied).toBeNull();
+    }
   });
 });

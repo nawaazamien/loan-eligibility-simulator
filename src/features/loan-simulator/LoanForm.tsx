@@ -7,9 +7,11 @@ import frameStyles from '../../components/Frame.module.css';
 import { cx } from '../../styles/cx';
 import { CurrencyField } from './CurrencyField';
 import { ErrorSummary } from './ErrorSummary';
+import { ExpenseHelper } from './ExpenseHelper';
 import type { AmountField, FormAction, FormState, FormStatus } from './formState';
 import styles from './LoanForm.module.css';
 import { LoanAmountField } from './LoanAmountField';
+import { formatCents } from './model/format';
 import { AMOUNT_FIELDS } from './model/validate';
 import { TermSelector } from './TermSelector';
 
@@ -34,11 +36,22 @@ const BUDGET_FIELDS: readonly { field: BudgetField; label: string; hint: string 
   },
 ];
 
-/** Verbatim from the design (HANDOFF §5). */
-const STATUS_TEXT: Record<Exclude<FormStatus, null>, string> = {
-  example: 'Example values added. Select Calculate estimate to see the result.',
-  reset: 'Form reset. Enter your details to calculate a new estimate.',
-};
+/** The example and reset messages are verbatim from the design (HANDOFF §5). */
+function statusText(status: Exclude<FormStatus, null>, state: FormState): string {
+  switch (status) {
+    case 'example':
+      return 'Example values added. Select Calculate estimate to see the result.';
+    case 'reset':
+      return 'Form reset. Enter your details to calculate a new estimate.';
+    case 'expensesApplied': {
+      const applied = state.expenseHelper.applied;
+      const amount = applied
+        ? formatCents(applied.cents, { withCents: applied.cents % 100 !== 0 })
+        : 'your total';
+      return `Monthly living expenses set to ${amount} from your breakdown.`;
+    }
+  }
+}
 
 interface LoanFormProps {
   state: FormState;
@@ -52,6 +65,7 @@ export function LoanForm({ state, dispatch, isStale, summaryRef }: LoanFormProps
   const idBase = useId();
   const headingId = `${idBase}-heading`;
   const incomeRef = useRef<HTMLInputElement>(null);
+  const expensesRef = useRef<HTMLInputElement>(null);
 
   const fieldId = (field: AmountField) => `${idBase}-${field}`;
   const edit = (field: AmountField) => (text: string) => {
@@ -109,7 +123,16 @@ export function LoanForm({ state, dispatch, isStale, summaryRef }: LoanFormProps
             onChange={edit(field)}
             onBlur={blur(field)}
             {...(field === 'income' ? { inputRef: incomeRef } : {})}
-          />
+            {...(field === 'expenses' ? { inputRef: expensesRef } : {})}
+          >
+            {field === 'expenses' && (
+              <ExpenseHelper
+                helper={state.expenseHelper}
+                dispatch={dispatch}
+                expensesInputRef={expensesRef}
+              />
+            )}
+          </CurrencyField>
         ))}
       </fieldset>
 
@@ -161,7 +184,7 @@ export function LoanForm({ state, dispatch, isStale, summaryRef }: LoanFormProps
                   strokeWidth={1.5}
                   className={styles.statusIcon}
                 />
-                <span>{STATUS_TEXT[state.status]}</span>
+                <span>{statusText(state.status, state)}</span>
               </>
             )}
           </div>

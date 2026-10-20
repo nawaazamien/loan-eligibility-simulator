@@ -190,3 +190,7 @@ The term-group lines, button outlines, corner marks and outcome borders keep the
 
 - **Breakdown bar width.** The reference's bar segments cannot shrink, so the 2px gaps push the bar about 5px past the panel's edge. The segments now shrink to fit (D-043).
 - **Repayment figure at large text.** The figure is capped relative to the panel width, so the whole amount stays on one line when the browser's text size is large. At normal sizes it is unchanged (D-042).
+
+## 18. Phase 5 addition: expense helper
+
+The approved design has no expense breakdown; the owner requested one. It uses only existing patterns and tokens: a ghost-style disclosure button with a chevron (as in "How this estimate is calculated"), a hairline-bordered panel, the standard currency fields, and the secondary and ghost button styles. There are no new colours. Screenshots are in [validation/phase-5](validation/phase-5/).

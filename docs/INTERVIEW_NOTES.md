@@ -10,6 +10,10 @@ The brief asks for an estimate from mocked assumptions. The rate, fee and rule a
 
 A field keeps exactly what was typed, even `28 5o0` or an empty string. Nothing is reformatted while typing, so the caret never jumps. On blur, a valid amount is tidied (`28500` → `28 500`) and anything else is left alone. Parsing (`model/amount.ts`) turns text into one of `empty`, `malformed`, `negative` or `ok(cents)`, so an empty field is never mistaken for zero. Cents come from the digit strings, never `parseFloat`. Validation (`model/validate.ts`) checks the design's order (empty → malformed → negative → range), and never clamps or rounds what was typed (D-021).
 
+## The expense helper: a draft, not a second source
+
+"Help me calculate my expenses" breaks expenses into eight categories, but the calculation still reads only the one expenses field. Category edits are a draft. "Use this total" sums the categories in integer cents and writes the field through the same reducer path as typing, so freshness, validation and the model are untouched. An unchanged total leaves an estimate current; a changed one marks it out of date. Opening the helper never throws away a typed total (it starts under "Other living expenses"), and a remembered breakdown is dropped as soon as the field holds a different amount (`expenseHelperState.ts`, D-048 to D-051).
+
 ## Integer cents and the one rounding step
 
 Every amount is an integer number of cents. The only floating-point operation is the amortisation factor, `r ÷ (1 − (1 + r)^−n)`. The instalment `principal × factor` is rounded once, half-up, to a whole cent, and the R69 fee is added in integers (`model/calculate.ts`). Totals, the money left and the limit all follow in integer arithmetic. The design said "round only for display"; this changes that deliberately, so that the repayment shown is exactly the figure that was compared (D-008). A zero-rate branch (`principal ÷ n`) is defined and tested, although the demo rate is never zero.

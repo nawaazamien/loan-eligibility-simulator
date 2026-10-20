@@ -1,6 +1,17 @@
+import {
+  applyHelper,
+  blurCategory,
+  closeHelper,
+  editCategory,
+  initialExpenseHelper,
+  openHelper,
+  syncAppliedWithExpenses,
+  type ExpenseHelperState,
+} from './expenseHelperState';
 import { parseAmount } from './model/amount';
 import { calculateEstimate, type Estimate } from './model/calculate';
 import { DEFAULT_TERM, type Term } from './model/constants';
+import type { ExpenseCategory } from './model/expenses';
 import { centsToInputText, formatAmountOnBlur } from './model/format';
 import { loanSliderPosition } from './model/loanSlider';
 import {
@@ -15,7 +26,7 @@ import {
 export type { AmountField } from './model/validate';
 
 /** Which confirmation the form status region shows, if any. Cleared by the next edit. */
-export type FormStatus = 'example' | 'reset' | null;
+export type FormStatus = 'example' | 'reset' | 'expensesApplied' | null;
 
 /** The last successful calculation: its canonical inputs key and the estimate itself. */
 export interface CalculatedResult {
@@ -40,6 +51,8 @@ export interface FormState {
   readonly result: CalculatedResult | null;
   /** Incremented on every submit, so the view can move focus once per attempt. */
   readonly submitCount: number;
+  /** The optional expense breakdown; it can only change `values.expenses` by applying. */
+  readonly expenseHelper: ExpenseHelperState;
 }
 
 export type FormAction =
@@ -49,7 +62,16 @@ export type FormAction =
   | { readonly type: 'selectTerm'; readonly term: Term }
   | { readonly type: 'useExample' }
   | { readonly type: 'submit' }
-  | { readonly type: 'reset' };
+  | { readonly type: 'reset' }
+  | { readonly type: 'openExpenseHelper' }
+  | { readonly type: 'closeExpenseHelper' }
+  | {
+      readonly type: 'editExpenseCategory';
+      readonly category: ExpenseCategory;
+      readonly text: string;
+    }
+  | { readonly type: 'blurExpenseCategory'; readonly category: ExpenseCategory }
+  | { readonly type: 'applyExpenseHelper' };
 
 /** Design defaults (HANDOFF §6): budget fields empty, R50 000 over 36 months. */
 export const initialFormState: FormState = {
@@ -62,6 +84,7 @@ export const initialFormState: FormState = {
   showSummary: false,
   result: null,
   submitCount: 0,
+  expenseHelper: initialExpenseHelper,
 };
 
 /** The design's example values (HANDOFF §6). */
@@ -94,7 +117,11 @@ export function formReducer(state: FormState, action: FormAction): FormState {
         action.field === 'loan'
           ? (loanSliderPosition(parseAmount(action.text)) ?? state.loanSlider)
           : state.loanSlider;
-      return { ...state, values, loanSlider, status: null };
+      const expenseHelper =
+        action.field === 'expenses'
+          ? syncAppliedWithExpenses(state.expenseHelper, action.text)
+          : state.expenseHelper;
+      return { ...state, values, loanSlider, expenseHelper, status: null };
     }
     case 'blur': {
       const formatted = formatAmountOnBlur(state.values[action.field]);
@@ -115,6 +142,7 @@ export function formReducer(state: FormState, action: FormAction): FormState {
       return { ...state, term: action.term, status: null };
     case 'useExample':
       // Fills the inputs only. Any previous result stays and is compared as usual.
+      // The example replaces the expenses figure, so any breakdown is discarded too.
       return {
         ...state,
         values: EXAMPLE_VALUES,
@@ -123,6 +151,7 @@ export function formReducer(state: FormState, action: FormAction): FormState {
         errors: {},
         showSummary: false,
         status: 'example',
+        expenseHelper: { ...initialExpenseHelper, applyCount: state.expenseHelper.applyCount },
       };
     case 'submit': {
       const values = {
@@ -147,6 +176,35 @@ export function formReducer(state: FormState, action: FormAction): FormState {
       };
     }
     case 'reset':
-      return { ...initialFormState, status: 'reset', submitCount: state.submitCount };
+      return {
+        ...initialFormState,
+        status: 'reset',
+        submitCount: state.submitCount,
+        expenseHelper: { ...initialExpenseHelper, applyCount: state.expenseHelper.applyCount },
+      };
+    case 'openExpenseHelper':
+      return { ...state, expenseHelper: openHelper(state.expenseHelper, state.values.expenses) };
+    case 'closeExpenseHelper':
+      return { ...state, expenseHelper: closeHelper(state.expenseHelper) };
+    case 'editExpenseCategory':
+      // Draft only: the expenses field, the status message and any estimate are untouched.
+      return {
+        ...state,
+        expenseHelper: editCategory(state.expenseHelper, action.category, action.text),
+      };
+    case 'blurExpenseCategory':
+      return { ...state, expenseHelper: blurCategory(state.expenseHelper, action.category) };
+    case 'applyExpenseHelper': {
+      const outcome = applyHelper(state.expenseHelper);
+      if (!outcome.ok) return { ...state, expenseHelper: outcome.helper };
+      // Through the same path as typing into the field and leaving it, so validation and the
+      // derived freshness of any estimate behave exactly as for a manual entry.
+      const values = { ...state.values, expenses: outcome.expensesText };
+      return revalidate(
+        { ...state, values, status: 'expensesApplied', expenseHelper: outcome.helper },
+        'expenses',
+        outcome.expensesText,
+      );
+    }
   }
 }

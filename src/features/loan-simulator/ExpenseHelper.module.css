@@ -1,0 +1,86 @@
+.helper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 2px;
+}
+
+.toggle {
+  gap: 6px;
+  margin-left: -8px;
+  text-align: left;
+}
+
+.chevron {
+  flex: none;
+}
+
+.open {
+  transform: rotate(180deg);
+}
+
+.panel {
+  align-self: stretch;
+  margin-top: 8px;
+  padding: 16px;
+  border: var(--border);
+}
+
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+
+.guidance {
+  font-size: var(--text-hint);
+  line-height: var(--leading-hint);
+  color: var(--color-neutral-700);
+}
+
+.note {
+  font-size: var(--text-hint);
+  line-height: var(--leading-hint);
+  color: var(--color-neutral-800);
+}
+
+/* Two columns when there is room for two comfortable fields, otherwise one. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 16px 18px;
+}
+
+.total {
+  font-size: 1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.totalError {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-critical);
+}
+
+.totalError:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}

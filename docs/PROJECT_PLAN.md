@@ -246,3 +246,20 @@ The JS and CSS file hashes in the CI image match the local build, so the build i
 | CI passes all jobs                                                                | See the CI run below                                                  |
 | The README is accurate to the shipped behaviour                                   | **Met**: verified from a fresh clone, and four inaccuracies corrected |
 | The repository is public and the URL is recorded                                  | **Met**: https://github.com/nawaazamien/loan-eligibility-simulator    |
+
+### Phase 5 — Expense helper and live demo
+
+**Scope:** an optional, inline monthly-expense breakdown that can set the expenses field (D-048 to D-051), and a free public demo on Render (D-052).
+
+**Validation record (2026-10-20)**, in `D:\Projects\loan-eligibility-simulator-phase1`, started from `245a4f1`:
+
+| Check                   | Result                                                                                                                                                                                                                             |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run check`         | **Passed**: Vitest 208/208 in 11 files (44 new: category parsing and totals, helper state, reducer integration, component behaviour)                                                                                               |
+| `npm run test:coverage` | **Passed**: `model/**`, `formState.ts` and the new `expenseHelperState.ts` at 100% (enforced)                                                                                                                                      |
+| `npm run test:e2e`      | **Passed**: 117 passed, 4 skipped. New: expanded, invalid, applied, cancelled and stale-after-apply states with axe at 1280, 360 and 320 px; text spacing; Enter-to-apply in Firefox and WebKit; the helper at a 32px default font |
+| Enter handling          | Removing the Enter handler makes the unit test and both smoke tests fail                                                                                                                                                           |
+| `render.yaml`           | Valid against Render's published JSON schema (a deliberately broken copy is rejected)                                                                                                                                              |
+| Live demo               | See the hosting status below                                                                                                                                                                                                       |
+
+Accessibility of the helper is covered by axe, keyboard and focus tests, text spacing and larger text. It has **not** had a real screen-reader pass; that stays on the manual checklist.

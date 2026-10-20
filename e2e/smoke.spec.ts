@@ -92,6 +92,24 @@ test.describe('core flow', () => {
   });
 });
 
+test.describe('expense helper', () => {
+  test('Enter in a category applies the total and never submits the loan form', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Help me calculate my expenses' }).click();
+    const housing = page.getByRole('textbox', { name: 'Housing in rand' });
+    await housing.fill('6000');
+    await housing.press('Enter');
+
+    await expect(field(page, 'Monthly living expenses')).toHaveValue('6 000');
+    await expect(field(page, 'Monthly living expenses')).toBeFocused();
+    // A submitted loan form would show the error summary for the empty income and debt.
+    await expect(page.getByRole('alert')).toHaveCount(0);
+    await expect(estimate(page)).toContainText('Enter your details and select Calculate estimate');
+  });
+});
+
 test.describe('Firefox regressions', () => {
   test('a focused control near the bottom edge is scrolled fully into view', async ({
     page,

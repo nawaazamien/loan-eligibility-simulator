@@ -8,7 +8,8 @@ interface CurrencyFieldProps {
   id: string;
   name: string;
   label: string;
-  hint: string;
+  /** Helper text under the label; optional for compact fields such as expense categories. */
+  hint?: string;
   value: string;
   onChange: (text: string) => void;
   onBlur: () => void;
@@ -44,9 +45,11 @@ export function CurrencyField({
       <label htmlFor={id} className={styles.label}>
         {label} <span className="visually-hidden">in rand</span>
       </label>
-      <p id={hintId} className={styles.hint}>
-        {hint}
-      </p>
+      {hint && (
+        <p id={hintId} className={styles.hint}>
+          {hint}
+        </p>
+      )}
       {error && (
         <p id={errorId} className={styles.error}>
           <CircleAlert
@@ -75,7 +78,9 @@ export function CurrencyField({
             onChange(event.target.value);
           }}
           onBlur={onBlur}
-          aria-describedby={error ? `${errorId} ${hintId}` : hintId}
+          aria-describedby={
+            [error ? errorId : '', hint ? hintId : ''].filter(Boolean).join(' ') || undefined
+          }
           aria-invalid={error ? true : undefined}
           className={cx(styles.input, error && styles.invalid)}
         />

@@ -503,3 +503,169 @@ describe('LoanSimulator scrolling to the estimate', () => {
     expect(scrollIntoView).not.toHaveBeenCalled();
   });
 });
+
+describe('LoanSimulator expense helper', () => {
+  const toggle = () => screen.getByRole('button', { name: 'Help me calculate my expenses' });
+  const category = (label: string) => screen.getByRole('textbox', { name: `${label} in rand` });
+  const useTotal = () => screen.getByRole('button', { name: 'Use this total' });
+
+  it('is a collapsed disclosure that controls a labelled group of category fields', async () => {
+    const { user } = setup();
+
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+    const panel = document.getElementById(toggle().getAttribute('aria-controls') ?? '');
+    expect(panel).not.toBeVisible();
+
+    await user.click(toggle());
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+    const group = screen.getByRole('group', { name: 'Monthly living expenses by category' });
+    expect(within(group).getAllByRole('textbox')).toHaveLength(8);
+    expect(group).toHaveTextContent('Include living costs only.');
+    expect(group).toHaveTextContent('blank counts as R0');
+    expect(group).toHaveTextContent(
+      'Your monthly expenses change only when you select ‘Use this total’.',
+    );
+  });
+
+  it('starts from the current amount under Other living expenses', async () => {
+    const { user } = setup();
+    await user.type(expenses(), '14200');
+    await user.click(toggle());
+
+    expect(category('Other living expenses')).toHaveValue('14 200');
+    expect(category('Housing')).toHaveValue('');
+    expect(
+      screen.getByText(sp('This started with your current amount, R14_200, under Other'), {
+        exact: false,
+      }),
+    ).toBeVisible();
+  });
+
+  it('shows a running total, and no total while an amount cannot be read', async () => {
+    const { user } = setup();
+    await user.click(toggle());
+
+    await user.type(category('Housing'), '6000');
+    await user.type(category('Food and groceries'), '4500.50');
+    expect(screen.getByText(sp('Total R10_500.50 a month'))).toBeVisible();
+
+    await user.type(category('Transport'), 'abc');
+    expect(screen.queryByText(/^Total R/)).not.toBeInTheDocument();
+    expect(screen.getByText(/no total to show/)).toBeVisible();
+  });
+
+  it('applies the total to the expenses field, confirms it and returns focus', async () => {
+    const { user, form } = setup();
+    await user.click(toggle());
+    await user.type(category('Housing'), '6000');
+    await user.type(category('Food and groceries'), '4500');
+    expect(expenses()).toHaveValue('');
+
+    await user.click(useTotal());
+    expect(expenses()).toHaveValue('10 500');
+    expect(expenses()).toHaveFocus();
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+    expect(within(form).getByRole('status')).toHaveTextContent(
+      sp('Monthly living expenses set to R10_500 from your breakdown.'),
+    );
+  });
+
+  it('applies with Enter in a category without calculating a loan estimate', async () => {
+    const { user, estimate } = setup();
+    await enter(user, { income: '28500', debt: '3150' });
+    await user.click(toggle());
+    await user.type(category('Housing'), '14200{Enter}');
+
+    expect(expenses()).toHaveValue('14 200');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(randFigures(estimate)).toEqual([]);
+  });
+
+  it('marks invalid categories and focuses the first one', async () => {
+    const { user } = setup();
+    await user.click(toggle());
+    await user.type(category('Utilities'), '-5');
+    await user.type(category('Transport'), 'abc');
+    await user.click(useTotal());
+
+    expect(category('Utilities')).toHaveFocus();
+    expect(category('Utilities')).toHaveAttribute('aria-invalid', 'true');
+    expect(category('Utilities')).toHaveAccessibleDescription('Enter an amount of R0 or more.');
+    expect(category('Transport')).toHaveAccessibleDescription(
+      'Use numbers only, for example 18 500.',
+    );
+    expect(expenses()).toHaveValue('');
+  });
+
+  it('focuses a clear message when the total is above the limit', async () => {
+    const { user } = setup();
+    await user.click(toggle());
+    await user.type(category('Housing'), '700000');
+    await user.type(category('Other living expenses'), '400000');
+    await user.click(useTotal());
+
+    const message = screen.getByText(/more than the R1.000.000 limit for monthly living expenses/);
+    expect(message).toHaveFocus();
+  });
+
+  it('cancel discards the draft, leaves the field alone and returns focus to the toggle', async () => {
+    const { user } = setup();
+    await user.type(expenses(), '9000');
+    await user.click(toggle());
+    await user.clear(category('Other living expenses'));
+    await user.type(category('Housing'), '1');
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    // Unchanged by the helper (leaving the field earlier tidied 9000 to 9 000, as usual).
+    expect(expenses()).toHaveValue('9 000');
+    expect(toggle()).toHaveFocus();
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+    await user.click(toggle());
+    expect(category('Housing')).toHaveValue('');
+    expect(category('Other living expenses')).toHaveValue('9 000');
+  });
+
+  it('restores the applied breakdown when reopened', async () => {
+    const { user } = setup();
+    await user.click(toggle());
+    await user.type(category('Housing'), '6000');
+    await user.type(category('Insurance'), '800');
+    await user.click(useTotal());
+    await user.click(toggle());
+
+    expect(category('Housing')).toHaveValue('6 000');
+    expect(category('Insurance')).toHaveValue('800');
+    expect(category('Other living expenses')).toHaveValue('');
+  });
+
+  it('leaves a current estimate current while editing, then marks a changed total stale', async () => {
+    const { user, estimate } = setup();
+    await enter(user, CASE_1);
+    await user.click(calculate());
+
+    await user.click(toggle());
+    await user.clear(category('Other living expenses'));
+    await user.type(category('Housing'), '9000');
+    expect(expenses()).toHaveValue('14 200');
+    expect(within(estimate).getByRole('status')).toBeEmptyDOMElement();
+
+    await user.click(useTotal());
+    expect(expenses()).toHaveValue('9 000');
+    expect(within(estimate).getByRole('status')).toHaveTextContent('out of date');
+  });
+
+  it('keeps an estimate current when the applied total is unchanged', async () => {
+    const { user, estimate } = setup();
+    await enter(user, CASE_1);
+    await user.click(calculate());
+
+    await user.click(toggle());
+    await user.clear(category('Other living expenses'));
+    await user.type(category('Housing'), '9000');
+    await user.type(category('Food and groceries'), '5200');
+    await user.click(useTotal());
+
+    expect(expenses()).toHaveValue('14 200');
+    expect(within(estimate).getByRole('status')).toBeEmptyDOMElement();
+  });
+});

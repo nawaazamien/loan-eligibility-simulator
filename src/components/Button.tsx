@@ -1,9 +1,9 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithRef } from 'react';
 
 import { cx } from '../styles/cx';
 import styles from './Button.module.css';
 
-type ButtonProps = ComponentPropsWithoutRef<'button'> & {
+type ButtonProps = ComponentPropsWithRef<'button'> & {
   variant: 'primary' | 'secondary' | 'ghost';
   /**
    * Keeps focus where it is when the button is pressed with a pointer. Leaving a field can
