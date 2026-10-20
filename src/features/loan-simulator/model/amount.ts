@@ -30,3 +30,22 @@ export function parseAmount(raw: string): ParsedAmount {
   if (sign === '-' && cents > 0) return { kind: 'negative' };
   return { kind: 'ok', cents };
 }
+
+/** A whole number such as an age, a count of months or a credit score. */
+export type ParsedWhole =
+  | { readonly kind: 'empty' }
+  | { readonly kind: 'malformed' }
+  | { readonly kind: 'negative' }
+  | { readonly kind: 'ok'; readonly value: number };
+
+/**
+ * Reads a whole number with the same editing conventions as amounts (spaces and a leading
+ * "R" are tolerated), but refuses a fractional part: "35.5" is malformed, "35.00" is 35.
+ */
+export function parseWhole(raw: string): ParsedWhole {
+  const parsed = parseAmount(raw);
+  if (parsed.kind !== 'ok') return parsed;
+  if (parsed.cents % 100 !== 0) return { kind: 'malformed' };
+  const value = parsed.cents / 100;
+  return Number.isSafeInteger(value) ? { kind: 'ok', value } : { kind: 'malformed' };
+}

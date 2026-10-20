@@ -11,6 +11,11 @@ interface CurrencyFieldProps {
   /** Helper text under the label; optional for compact fields such as expense categories. */
   hint?: string;
   value: string;
+  /** Visible prefix before the value; "R" for amounts, none for ages and months. */
+  prefix?: string;
+  /** Unit read out after the label ("in rand"); null for none. */
+  unit?: string | null;
+  inputMode?: 'decimal' | 'numeric';
   onChange: (text: string) => void;
   onBlur: () => void;
   /** Validation message; shown between the hint and the input, as in the design. */
@@ -31,6 +36,9 @@ export function CurrencyField({
   label,
   hint,
   value,
+  prefix = 'R',
+  unit = 'in rand',
+  inputMode = 'decimal',
   onChange,
   onBlur,
   error,
@@ -43,7 +51,9 @@ export function CurrencyField({
   return (
     <div className={styles.field}>
       <label htmlFor={id} className={styles.label}>
-        {label} <span className="visually-hidden">in rand</span>
+        {label}
+        {unit ? ' ' : ''}
+        {unit && <span className="visually-hidden">{unit}</span>}
       </label>
       {hint && (
         <p id={hintId} className={styles.hint}>
@@ -62,15 +72,17 @@ export function CurrencyField({
         </p>
       )}
       <div className={styles.control}>
-        <span aria-hidden="true" className={styles.prefix}>
-          R
-        </span>
+        {prefix && (
+          <span aria-hidden="true" className={styles.prefix}>
+            {prefix}
+          </span>
+        )}
         <input
           ref={inputRef}
           id={id}
           name={name}
           type="text"
-          inputMode="decimal"
+          inputMode={inputMode}
           autoComplete="off"
           spellCheck={false}
           value={value}
@@ -82,7 +94,7 @@ export function CurrencyField({
             [error ? errorId : '', hint ? hintId : ''].filter(Boolean).join(' ') || undefined
           }
           aria-invalid={error ? true : undefined}
-          className={cx(styles.input, error && styles.invalid)}
+          className={cx(styles.input, !prefix && styles.noPrefix, error && styles.invalid)}
         />
       </div>
       {children}

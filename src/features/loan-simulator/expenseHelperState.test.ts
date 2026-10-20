@@ -86,12 +86,12 @@ describe('editing, cancelling and applying', () => {
 
   it('stays open with a total error when the categories add up to too much', () => {
     let helper = openHelper(initialExpenseHelper, '');
-    helper = editCategory(helper, 'housing', '700 000');
-    helper = editCategory(helper, 'other', '400 000');
+    helper = editCategory(helper, 'housing', '70 000 000');
+    helper = editCategory(helper, 'other', '40 000 000');
     const outcome = applyHelper(helper);
     expect(outcome.ok).toBe(false);
     expect(outcome.helper.errors).toEqual({});
-    expect(outcome.helper.totalError).toContain('R1 100 000');
+    expect(outcome.helper.totalError).toContain('R110 000 000');
   });
 
   it('re-checks a category on blur only after a failed apply', () => {
@@ -104,6 +104,17 @@ describe('editing, cancelling and applying', () => {
     helper = blurCategory(editCategory(helper, 'food', '2500'), 'food');
     expect(helper.errors).toEqual({});
     expect(helper.draft.food).toBe('2 500');
+  });
+
+  it('after a failed apply, a blur updates only the category that was left', () => {
+    let helper: ExpenseHelperState = openHelper(initialExpenseHelper, '');
+    helper = editCategory(editCategory(helper, 'food', 'abc'), 'transport', '-5');
+    helper = applyHelper(helper).helper;
+    expect(Object.keys(helper.errors).sort()).toEqual(['food', 'transport']);
+    helper = blurCategory(editCategory(helper, 'food', 'still bad'), 'food');
+    expect(Object.keys(helper.errors).sort()).toEqual(['food', 'transport']);
+    helper = blurCategory(editCategory(helper, 'transport', '10'), 'transport');
+    expect(Object.keys(helper.errors)).toEqual(['food']);
   });
 });
 

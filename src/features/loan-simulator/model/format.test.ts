@@ -1,4 +1,11 @@
-import { centsToInputText, formatAmountOnBlur, formatCents, formatRand } from './format';
+import {
+  centsToInputText,
+  formatAmountOnBlur,
+  formatCents,
+  formatPercent,
+  formatRand,
+  formatWholeOnBlur,
+} from './format';
 
 describe('centsToInputText', () => {
   it.each([
@@ -59,5 +66,25 @@ describe('formatCents', () => {
     expect(formatCents(-39_812)).toBe('−R398');
     expect(formatCents(-39_850)).toBe('−R399');
     expect(formatCents(0)).toBe('R0');
+  });
+});
+
+describe('formatWholeOnBlur', () => {
+  it('tidies a readable whole number and leaves the rest as typed', () => {
+    expect(formatWholeOnBlur(' 035 ')).toBe('35');
+    expect(formatWholeOnBlur('48.00')).toBe('48');
+    expect(formatWholeOnBlur('35.5')).toBe('35.5');
+    expect(formatWholeOnBlur('')).toBe('');
+    expect(formatWholeOnBlur('abc')).toBe('abc');
+  });
+});
+
+describe('formatPercent', () => {
+  it('drops a trailing .0 and keeps one decimal otherwise', () => {
+    expect(formatPercent(20)).toBe('20%');
+    expect(formatPercent(7.5)).toBe('7.5%');
+    expect(formatPercent(12.5)).toBe('12.5%');
+    expect(formatPercent(0)).toBe('0%');
+    expect(formatPercent(33.3)).toBe('33.3%');
   });
 });

@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { openApp } from './helpers';
+
 test.describe('application shell', () => {
   test('loads without runtime errors, failed requests or horizontal overflow', async ({ page }) => {
     const problems: string[] = [];
@@ -11,7 +13,7 @@ test.describe('application shell', () => {
       if (response.status() >= 400) problems.push(`${String(response.status())} ${response.url()}`);
     });
 
-    await page.goto('/');
+    await openApp(page);
 
     await expect(page).toHaveTitle('Loan eligibility simulator · Tally (demo)');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Loan eligibility simulator');
@@ -37,7 +39,9 @@ test.describe('application shell', () => {
   test('places the estimate beside the form on wide screens and below it on narrow ones', async ({
     page,
   }) => {
-    await page.goto('/');
+    await openApp(page);
+    // Measure after the web fonts swap in; otherwise the layout can shift between the two boxes.
+    await page.evaluate(() => document.fonts.ready);
     const width = page.viewportSize()?.width ?? 0;
 
     const details = page.getByRole('form', { name: 'Your details' });

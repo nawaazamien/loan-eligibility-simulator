@@ -2,9 +2,13 @@
 
 Short explanations of the main choices in this project, with pointers to the code and records. Decision numbers refer to [DECISIONS.md](DECISIONS.md).
 
-## Why client-only
+## Why a mock API in the browser
 
-The brief asks for an estimate from mocked assumptions. The rate, fee and rule are constants, and the calculation is a few arithmetic steps. There is nothing that must be kept secret or shared between users, and a server would only add a place where someone's income and debts could be sent, logged or stored. Running everything in the browser means the app can promise, truthfully, that it stores and sends nothing. A browser test checks this: a full walkthrough makes only same-origin GET requests, and none carries a body. The production image is static files behind nginx (D-006, D-010).
+The first five phases built a simulator from the short email brief: mocked assumptions, calculated in the browser. The employer's attachment, a four-endpoint API specification, was overlooked, and Phase 6 corrects that rather than hiding it (D-054; the history in [PROJECT_PLAN.md](PROJECT_PLAN.md) says which phases met which document).
+
+The brief wants a mocked API and a static or Docker deployment. A Mock Service Worker answers the four endpoints as real HTTP inside the browser, so the app stays a static site while the UI talks to one typed client (`src/api/client.ts`). Replacing the mock with a real API is a build setting (`VITE_API_BASE_URL`) plus a CSP entry; nothing in `features/` changes ([API.md](API.md), D-055, D-060). Because the worker is infrastructure that handles user input, its scope, storage, caching and privacy are documented and tested (D-059). Alternatives I rejected: a hand-written fake `fetch` (not real HTTP, so contract tests prove less) and a Node mock server (cannot be a static site).
+
+What it costs: it needs a browser with service workers, so the page shows a clear error where they are blocked, and the worker script has to be served revalidated.
 
 ## Editing text versus canonical values
 
@@ -14,25 +18,27 @@ A field keeps exactly what was typed, even `28 5o0` or an empty string. Nothing 
 
 "Help me calculate my expenses" breaks expenses into eight categories, but the calculation still reads only the one expenses field. Category edits are a draft. "Use this total" sums the categories in integer cents and writes the field through the same reducer path as typing, so freshness, validation and the model are untouched. An unchanged total leaves an estimate current; a changed one marks it out of date. Opening the helper never throws away a typed total (it starts under "Other living expenses"), and a remembered breakdown is dropped as soon as the field holds a different amount (`expenseHelperState.ts`, D-048 to D-051).
 
-## Integer cents and the one rounding step
+## Integer cents and the rounding rules
 
-Every amount is an integer number of cents. The only floating-point operation is the amortisation factor, `r ÷ (1 − (1 + r)^−n)`. The instalment `principal × factor` is rounded once, half-up, to a whole cent, and the R69 fee is added in integers (`model/calculate.ts`). Totals, the money left and the limit all follow in integer arithmetic. The design said "round only for display"; this changes that deliberately, so that the repayment shown is exactly the figure that was compared (D-008). A zero-rate branch (`principal ÷ n`) is defined and tested, although the demo rate is never zero.
+Money is integer cents in the mock and in the form's formatting; rates are integer basis points. The level payment is rounded half-up once; each month's interest is rounded half-up from the opening balance; and the **final payment is adjusted** so the balance ends at exactly 0.00 instead of leaving or overpaying a few cents. The one floating-point step is the annuity factor. The figures were recomputed independently in Python's `decimal` (`docs/validation/phase-6/verify_reference.py`) and are asserted in the tests, so the TypeScript and the check cannot share a bug ([SIMULATION_MODEL.md](SIMULATION_MODEL.md), D-056).
 
-## The exact affordability comparison
+## The exact affordability comparison, and the spec that disagrees with itself
 
-"The repayment may use up to 40% of what's left" is tested as `5 × repayment ≤ 2 × available`: integers on both sides, with no 0.4 multiplication. Reference case 5 sits exactly on the boundary (`5 × 108 204 = 2 × 270 510`) and is "within". One cent less income (case 6) is "above". Both are unit tests. All eight reference cases were re-derived independently with 50-digit decimal arithmetic before the TypeScript was written, and all matched. The "borrow about R… or less" suggestion is found by searching with the same repayment function, so it can never contradict the rule (D-008, SIMULATION_MODEL §3).
+In the mock, "a new payment may use up to 40% of what's left" is tested as `5 × payment ≤ 2 × available`: integers on both sides, with no 0.4 multiplication, so no boundary depends on floating-point error.
+
+The independent check also found that the specification's own example is inconsistent: R150 000 over 24 months at 12.5% is R7 096.10 a month, not R7 089.50 (its first row's interest, 1 562.33, is not 150 000 × 12.5% ÷ 12 = 1 562.50), its loan-to-income 60.0 matches no stated formula, and its sample inputs cannot afford its sample loan. I did not copy numbers that disagree; the tests assert the arithmetic and [TRACEABILITY.md](requirements/TRACEABILITY.md#6-where-the-specification-disagrees-with-itself) records each discrepancy (D-062).
 
 ## Snapshots and derived freshness
 
-A successful calculation stores the estimate and a canonical key of its inputs: each amount in cents, plus the term. "Out of date" is never stored; on every render the current inputs are keyed the same way and compared. Consequences:
+A calculation is the pair of API responses to one submission, stored as a snapshot together with a canonical key of its inputs (every field, amounts in cents, the credit score "not given" distinct from any score). "Out of date" is never stored; on every render the current inputs are keyed the same way and compared. Consequences:
 
-- every figure on screen comes from one stored estimate, never from the live form;
+- every figure on screen comes from one stored snapshot, never from the live form;
 - formatting-only edits (`28500` ↔ `R28,500.00`) keep it current;
 - changing a value back makes it current again;
 - an invalid edit can never match, so it always marks the result out of date;
 - a failed resubmission leaves the old estimate visible and still marked out of date.
 
-See `formState.ts` and D-026. Focus and the screen-reader announcement are tied to a per-calculation counter, so an identical recalculation is announced exactly once (D-027).
+Asynchronous state adds a second source of wrong figures, so the reducer records the pending request with an id and treats every outcome as an action that is ignored unless its id still matches: duplicate presses, a request superseded by an edit, an answer after Reset, and a late schedule answer are all dropped (and requests are cancelled). If only the schedule fails, the eligibility result stays with its own retry; a schedule that disagrees with the estimate is refused (D-058). See `formState.ts`, D-026 and D-027.
 
 ## Accessibility: what the review found
 
@@ -47,9 +53,10 @@ Each fix has a regression test that was shown to fail without it. Real screen-re
 
 ## Testing boundaries
 
-- **Model** (`model/`, `formState.ts`): pure functions and the reducer, 100% statement and branch coverage, enforced. This is where every figure and outcome is decided.
-- **Components** (Vitest + Testing Library): behaviour through roles and labels: validation, focus, freshness, announcements.
-- **Browser** (Playwright, production build): real layout, keyboard and focus, axe, reflow at three widths, and Firefox and WebKit core flows. CI repeats the browser suite against the Docker image.
+- **Contract** (`src/api/client.test.ts`): the real client against the mocked endpoints over intercepted HTTP, with shapes compared to the specification's own JSON.
+- **Model and reducer** (`model/`, `formState.ts`): pure functions and the reducer, 100% statement and branch coverage, enforced. The async lifecycle (pending, duplicate, supersede, stale, reset, schedule retry) is reducer tests.
+- **Components** (Vitest + Testing Library + MSW): behaviour through roles and labels, including loading, failure and retry, request counts for duplicate submits, and axe over the failure states.
+- **Browser** (Playwright, production build): the real service worker, real layout, keyboard and focus, axe, privacy (what is stored and what is sent), reflow at three widths, and Firefox and WebKit core flows. CI repeats the browser suite against the Docker image.
 - Coverage numbers are enforced only where they mean something; UI components are judged by behaviour tests instead (D-038).
 
 ## Docker and caching
@@ -58,9 +65,9 @@ The Dockerfile uses two stages: Node builds from the lockfile, then unprivileged
 
 ## Limitations, and what a real lending system would need
 
-This is a demonstration with a fictional rule. A real product would need, at least:
+This is a demonstration with a fictional mock. A real product would need, at least:
 
-- the lender's actual pricing and affordability policy (and the National Credit Act affordability assessment in South Africa), owned and versioned server-side, with the calculation run and audited on the server rather than trusted from the browser;
+- the lender's actual pricing and affordability policy (and the National Credit Act affordability assessment in South Africa), owned and versioned server-side, with the decision run and audited on the server rather than trusted from the browser; the mock here is only a stand-in for that API;
 - disclosure of the real cost of credit: initiation fees, insurance, rate changes;
 - identity, consent, credit-bureau data and secure handling of personal information (POPIA);
 - monitoring, analytics with consent, and real-device and assistive-technology testing with users.

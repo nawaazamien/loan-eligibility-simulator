@@ -28,10 +28,10 @@ describe('checkCategory', () => {
 
   it('rejects negative and out-of-range amounts without clamping', () => {
     expect(checkCategory('-200')).toEqual({ ok: false, message: 'Enter an amount of R0 or more.' });
-    expect(checkCategory('1 000 000')).toEqual({ ok: true, cents: 100_000_000 });
-    expect(checkCategory('1 000 000.01')).toEqual({
+    expect(checkCategory('100 000 000')).toEqual({ ok: true, cents: 10_000_000_000 });
+    expect(checkCategory('100 000 000.01')).toEqual({
       ok: false,
-      message: 'Enter an amount up to R1 000 000.',
+      message: 'Enter an amount up to R100 000 000.',
     });
     expect(checkCategory('9'.repeat(30))).toMatchObject({ ok: false });
   });
@@ -64,11 +64,14 @@ describe('totalDraft', () => {
   });
 
   it('rejects a combined total above the monthly-expenses limit', () => {
-    const draft = { ...EMPTY_EXPENSE_DRAFT, housing: '600 000', other: '400 000.01' };
+    const draft = { ...EMPTY_EXPENSE_DRAFT, housing: '60 000 000', other: '40 000 000.01' };
     const total = totalDraft(draft);
     if (total.ok || total.reason !== 'tooLarge') throw new Error('Expected a too-large total');
-    expect(total.cents).toBe(100_000_001);
-    expect(total.message).toContain('more than the R1 000 000 limit');
-    expect(totalDraft({ ...draft, other: '400 000' })).toEqual({ ok: true, cents: 100_000_000 });
+    expect(total.cents).toBe(10_000_000_001);
+    expect(total.message).toContain('more than the R100 000 000 limit');
+    expect(totalDraft({ ...draft, other: '40 000 000' })).toEqual({
+      ok: true,
+      cents: 10_000_000_000,
+    });
   });
 });

@@ -1,0 +1,47 @@
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.name {
+  font-size: 1.125rem;
+}
+
+.description {
+  font-size: var(--text-hint);
+  color: var(--color-neutral-800);
+}
+
+.facts {
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.875rem;
+}
+
+.facts div {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: 8px;
+}
+
+.facts dt {
+  font-weight: 600;
+}
+
+.facts dd {
+  margin: 0;
+  color: var(--color-neutral-800);
+}
+
+.scope {
+  margin-top: 6px;
+  font-size: var(--text-hint);
+  font-weight: 500;
+  color: var(--color-accent-700);
+}

@@ -19,6 +19,7 @@ Rules for anyone (human or agent) changing this repository.
 - TypeScript in strict mode (see `tsconfig.app.json`). No `any`, no non-null assertions to silence the compiler.
 - Keep calculations, parsing, validation and formatting as pure functions, separate from React components. Components contain no lending maths.
 - Use semantic HTML and native, accessible controls: visible labels, `fieldset`/`legend` for groups, real buttons, correct landmarks and heading order, visible focus. Target WCAG 2.2 AA.
+- The only service worker is the generated Mock Service Worker script that answers the four mocked API endpoints in the browser (`public/mockServiceWorker.js`, scope `/`, never edited by hand). It is infrastructure, documented in [docs/API.md](docs/API.md); the UI reaches the API only through the typed client in `src/api/`.
 - No unnecessary frameworks, services or abstractions. No component library for basic fields and cards. No backend, database, authentication, analytics or external AI calls.
 - Do not create empty folders or speculative shared layers.
 

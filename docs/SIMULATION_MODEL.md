@@ -1,123 +1,104 @@
 # Simulation model
 
-> **Status:** implemented in Phase 2, in `src/features/loan-simulator/model/` (`constants.ts`, `amount.ts`, `validate.ts`, `calculate.ts`, `format.ts`, `copy.ts`). Every case in §6 and §7 is a unit test.
+> **Status:** rewritten in Phase 6. This page describes the **mock API's** pricing and decision rules (`src/mock-api/pricing.ts`, `eligibility.ts`) and how the form prepares and shows their results (`src/features/loan-simulator/model/`). The model of Phases 2–5 (a fixed 19.5% rate, a R69 monthly fee, a "within/above/none" label computed in the browser) was **an assumption made before the employer's API specification was noticed**; it is superseded, not extended (DECISIONS D-054, D-056).
 >
-> **Scope:** this demonstration uses fictional assumptions and does not represent any lender's eligibility criteria or an offer of credit. It is a local, illustrative simulator: it performs no credit-bureau check and makes no approval, decline or offer.
+> **Scope:** everything here is fictional and deterministic. It is not the employer's rules (the specification defines request and response shapes, not decision logic) and not any lender's policy. The app performs no credit check and makes no approval, decline or offer; the words "estimate", "illustrative" and "demo" are used on purpose.
 
-**In one paragraph.** Take-home income minus living expenses and existing debt gives the money available each month. The loan is a standard amortising loan at a fictional 19.5% a year, compounded monthly; its instalment is rounded once, half-up, to the cent, and a fictional R69 monthly fee is added to give the repayment. The estimate is "within" the demo limit when the repayment is at most 40% of the money available, "above" when it is more, and "no room" when nothing is available. All money is integer cents, and the 40% test is the exact integer comparison `5 × repayment ≤ 2 × available`, so no boundary depends on floating-point error.
+**In one paragraph.** The browser sends the applicant's details to `POST /api/loans/eligibility`. The mock works out what is left each month after expenses and existing debt repayments, lets a new payment use up to 40% of it, finds the largest R1 000 step of loan that fits, prices it from the credit score within the product's published range, and returns eligibility, an illustrative likelihood and risk, the recommended amount and the affordability analysis. The browser then asks `POST /api/loans/calculate-rate` for the full repayment schedule of the same loan. The UI shows what the API returned and does **no lending maths**.
 
-The model follows the approved design (`design/reference/HANDOFF.md` §7 and the logic in `LoanSimulator.dc.html`). It changes one thing: arithmetic and rounding are made exact (see §4 and DECISIONS D-008).
+Assumption numbers (A1…A19) are defined in [requirements/TRACEABILITY.md](requirements/TRACEABILITY.md).
 
-## 1. Inputs
+## 1. Units and definitions
 
-| Input                            | Meaning                                                                           | Bounds (inclusive)        | Required         |
-| -------------------------------- | --------------------------------------------------------------------------------- | ------------------------- | ---------------- |
-| Monthly take-home income         | Net pay received each month, after tax and deductions                             | R1 000 – R1 000 000       | yes              |
-| Monthly living expenses          | Rent, groceries, transport, school fees and similar. **Excludes** debt repayments | R0 – R1 000 000           | yes (0 allowed)  |
-| Existing monthly debt repayments | Current loans, credit cards, store accounts. **Excludes** the simulated loan      | R0 – R1 000 000           | yes (0 allowed)  |
-| Loan amount (principal)          | Amount the customer would like to borrow                                          | R1 000 – R250 000         | yes              |
-| Repayment term                   | Number of monthly repayments                                                      | one of 12, 24, 36, 48, 60 | yes (default 36) |
+| Quantity                       | Definition                                                                          | Unit            | Assumption |
+| ------------------------------ | ----------------------------------------------------------------------------------- | --------------- | ---------- |
+| Monthly income                 | Take-home pay each month                                                            | rand per month  |            |
+| Monthly expenses               | Living costs, **excluding** debt repayments                                         | rand per month  |            |
+| Existing debt (`existingDebt`) | Repayments on current loans, cards and accounts each month                          | rand per month  | A1         |
+| Disposable income              | income − expenses (before debt)                                                     | rand per month  | A11        |
+| Available                      | income − expenses − existing debt                                                   | rand per month  | A8         |
+| Debt-to-income ratio           | existing debt ÷ income                                                              | % (one decimal) | A10        |
+| Loan-to-income ratio           | requested amount ÷ (12 × income)                                                    | % (one decimal) | A10        |
+| Interest rate                  | nominal annual rate, charged monthly on the outstanding balance, fixed for the term | % per year      | A9         |
 
-Amounts may include up to two decimal places. Defaults: income, expenses and debt are empty; the loan is 50 000; the term is 36.
+The two ratios have different denominators (monthly vs annual income) and are never compared with each other.
 
-### Parsing (from text input)
+## 2. Pricing (A9)
 
-Following the design: trim, strip a leading `R`/`r`, and remove spaces and NBSPs. Then remove commas that are followed by exactly three digits (thousands grouping) and treat a remaining single comma as the decimal point. The result must match `^-?\d+(\.\d{1,2})?$`.
+Each product publishes a rate range. The credit score places the applicant in eighths of that range (0 = lowest rate):
 
-Each input parses to one of `empty`, `malformed`, `negative`, or `ok(cents)`. The cents value is built from the integer and fraction **strings**, never from `parseFloat`, so `"0.29"` is exactly 29 cents.
+| Credit score | 750+ | 700–749 | 650–699 | 600–649 | 550–599 | below 550 | none given |
+| ------------ | ---- | ------- | ------- | ------- | ------- | --------- | ---------- |
+| Eighths      | 0    | 1       | 2       | 4       | 6       | 8         | 4          |
 
-Validation order and messages are taken verbatim from the handoff: empty → malformed → negative → range.
+rate (basis points) = min + (max − min) × eighths ÷ 8, rounded half-up to a basis point. For the personal loan (10.5%–18.5%): 10.5, 11.5, **12.5**, 14.5, 16.5, 18.5, and 14.5 with no score. A score of 650 giving exactly 12.5% matches the specification's example rate. The vehicle product (8.5%–15%) uses the same bands (for example 10.13% at 650).
 
-## 2. Fictional assumptions (single source: `constants.ts`)
+## 3. Payments and schedule (A12)
 
-| Assumption                                                              | Value                                                                                                                 |
-| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Annual interest rate                                                    | 19.5% nominal, fixed for the whole term, compounded monthly (r = 0.195 / 12)                                          |
-| Monthly service fee                                                     | R69, added to **every** repayment                                                                                     |
-| Initiation fee                                                          | none (explicitly excluded)                                                                                            |
-| Affordability rule                                                      | The new repayment (including the fee) may use up to **40%** of the money left after living expenses and existing debt |
-| Credit insurance, rate changes, credit history, employment, bureau data | not considered                                                                                                        |
+- All money is **integer cents**; rates are integer basis points.
+- Monthly rate r = annual rate ÷ 12. Level payment = round_half_up(P × r ÷ (1 − (1 + r)^−n)); the one floating-point step is the annuity factor. At a rate of zero it is P ÷ n, rounded up to the cent.
+- Each month: interest = round_half_up(opening balance × r); principal = payment − interest; balance = opening balance − principal.
+- The **final payment is adjusted** so the balance ends at exactly 0.00: it pays the remaining balance plus that month's interest (so it can differ from the level payment by a few cents).
+- `totalRepayment` is the sum of the payments; `totalInterest` is `totalRepayment − principal`.
+- The response lists **every** month.
 
-## 3. Calculation
+## 4. Eligibility (A8, A15)
 
-All money values are **integer cents**.
+1. `available = income − expenses − existing debt`.
+2. A payment **fits** when `5 × payment ≤ 2 × available` (40%, an exact integer test) and `available > 0`.
+3. `maxAmount` is the largest multiple of R1 000, between the product's minimum and maximum amount, whose payment (at the requested term and this applicant's rate) fits. If none fits, it is 0.
+4. **Employment:** an unemployed applicant is not assessed (`isEligible: false`, the reason says so). Every other status is assessed the same way; there is no exemption from the employment duration requirement (A4).
+5. `isEligible` = not unemployed, `available > 0`, and `maxAmount > 0`.
+6. `recommendedAmount` = min(requested, maxAmount) when eligible, otherwise 0; `monthlyPayment` and `totalRepayment` are for that amount (0 when none).
+7. `decisionReason` is one of five sentences: unemployed; no money left; even the smallest loan does not fit; the requested amount fits; a smaller amount would fit (naming it).
 
-```
-available   = income − expenses − debt                         (exact)
-instalment  = roundHalfUp( P · r / (1 − (1 + r)^−n) )          (cents; P = principal in cents)
-            = roundHalfUp( P / n )             when r = 0      (defined zero-interest case)
-repayment   = instalment + 6 900                               (fee R69 included)
-outcome     = "none"    if available ≤ 0
-              "within"  if 5 · repayment ≤ 2 · available        (≡ repayment ≤ 40% of available, exact)
-              "above"   otherwise
-limit       = floor(2 · available / 5)   when available > 0, else 0   (display and suggestions only)
-remaining   = available − repayment                            (may be negative)
-total       = repayment · n                                    (includes fees; see D-009)
-```
+### Illustrative approval likelihood and risk
 
-The zero-interest branch is not reachable with the fictional 19.5% rate. It exists so the amortisation function is total and well defined, and it is unit-tested directly.
+likelihood = 50 + credit points + affordability points + employment points, clamped to 5–95, and capped at 15 when not eligible.
 
-### Validation
+| Credit score | 750+ | 700+ | 650+ | 600+ | 550+ | lower | none |
+| ------------ | ---- | ---- | ---- | ---- | ---- | ----- | ---- |
+| Points       | +25  | +20  | +15  | +5   | −5   | −15   | 0    |
 
-Amounts are checked in the design's order: empty → malformed (including more than two decimal places) → negative → outside the bounds in §1. Values are never clamped, rounded or defaulted. Empty is not zero: `0` is a valid expense or debt amount, an empty field is an error. A number too large to hold exactly is reported as out of range. The term is one of the five radio values; any other value is a programming error and throws. Income that does not cover commitments is a valid **outcome** ("no room"), not an input error.
+| Affordability score of the **requested** amount | excellent | good | fair | poor |
+| ----------------------------------------------- | --------- | ---- | ---- | ---- |
+| Points                                          | +20       | +15  | +10  | −20  |
 
-### Derived suggestions (outcome "above" only)
+Employment points: unemployed −30; employed or self-employed for 12 months or more +5; otherwise 0. Risk: **low** at 75 or more, **medium** at 50–74, **high** below 50.
 
-- **maxLoan**: the largest multiple of R1 000 in [R1 000, R250 000] whose repayment at the **same term** is "within" under the exact rule above. It is found by evaluating the same repayment function, not by inverting the formula, so a suggestion can never contradict the outcome rule. It is shown only when at least R1 000 qualifies. For the reference cases it agrees with the design's closed-form `floor((limit − 69) / factor / 1000) × 1000`.
-- **repay60**: the repayment for the same loan over 60 months, with its own within/above status. It is shown only when the term is under 60.
+### Affordability score (A7)
 
-## 4. Rounding and number handling
+The requested amount's payment as a share of `available`: **excellent** up to 20%, **good** up to 30%, **fair** up to 40% (the limit), **poor** above 40% or when nothing is available.
 
-1. Inputs → exact integer cents (string-based parse).
-2. The single floating-point step is the amortisation factor. Its result is rounded **once**, half-up, to whole cents. That rounded instalment is the contractual monthly figure; everything else derives from it in integer arithmetic.
-3. The affordability comparison is an exact integer inequality (`5·repayment ≤ 2·available`). A floating-point 40% product never decides a boundary.
-4. Display-only rounding:
-   - Repayments are shown with cents (`R1 878.88`).
-   - Other rand figures are shown as whole rands, rounded half-up from cents (`R4 460`, `R90 186`). The sign is handled separately, so −R398.12 is shown as `−R398`.
-   - The percentage is `round(repayment / available × 100)`, half-up, display only, computed in integers.
-   - Exception: when an estimate is above the limit by less than R1, the gap is shown with cents (`R0.01`), because whole rand would read "R0 a month above it" (case 6; DECISIONS D-028).
-5. Formatting: `R` + digits grouped in threes with NBSP (U+00A0) + `.` decimals; negatives use U+2212 MINUS SIGN (`−R398`). Implemented manually and unit-tested, not with `Intl` en-ZA (which uses comma decimals).
+## 5. What the browser adds
 
-## 5. Outcome wording (from the design, estimate language only)
+The browser validates input before sending (the rules come from `GET /api/loans/validation-rules`), builds the request with the contract's exact names and nesting, asks for the schedule of the **recommended** amount (or the requested amount when none is recommended, labelled as not recommended), and refuses to display a schedule whose rate, payment, total or length disagrees with the estimate. It formats money for display only (`R1 986.91`, whole rand elsewhere, `−R398` with U+2212, NBSP grouping). Parsing accepts `28 500`, `R28,500` and `28 500,50`, and never turns empty or malformed text into zero.
 
-| Outcome | Title                               | Sub-text                                                                |
-| ------- | ----------------------------------- | ----------------------------------------------------------------------- |
-| within  | Within the demo affordability limit | An illustration based on fictional assumptions — not a credit decision. |
-| above   | Above the demo affordability limit  | (same)                                                                  |
-| none    | No room for an additional repayment | (same)                                                                  |
-| stale   | (previous title, neutral colour)    | Previous estimate — recalculate to update.                              |
+## 6. Independently verified reference values
 
-The explanation sentences, next-step tips and the live-region announcement use the handoff templates verbatim. None of the wording says "approved", "qualify", "offer" or "eligible for", except the footnote "Changes don't guarantee you'd qualify for a real loan.", which is itself a disclaimer.
+`docs/validation/phase-6/verify_reference.py` recomputes these with Python's `decimal` at high precision, sharing no code with the app (run it with `python -I`). The same values are asserted in `pricing.test.ts`, `eligibility.test.ts`, `client.test.ts` and the browser tests.
 
-## 6. Reference cases (independently checkable)
+| Case                                                   | Rate   | Level payment | Total interest | Total repayment | First row (payment / principal / interest / balance) | Last row                              |
+| ------------------------------------------------------ | ------ | ------------- | -------------- | --------------- | ---------------------------------------------------- | ------------------------------------- |
+| A. R150 000, 24 months, score 650 (the spec's example) | 12.5%  | 7 096.10      | 20 306.30      | 170 306.30      | 7 096.10 / 5 533.60 / 1 562.50 / 144 466.40          | 7 096.00 / 7 022.85 / 73.15 / 0.00    |
+| B. Personal minimum, R5 000, 6 months                  | 18.5%  | 878.87        | 273.22         | 5 273.22        | 878.87 / 801.79 / 77.08 / 4 198.21                   | 878.87 / 865.53 / 13.34 / 0.00        |
+| C. Personal maximum, R300 000, 60 months               | 10.5%  | 6 448.17      | 86 890.21      | 386 890.21      | 6 448.17 / 3 823.17 / 2 625.00 / 296 176.83          | 6 448.18 / 6 392.25 / 55.93 / 0.00    |
+| D. Vehicle minimum, R50 000, 12 months                 | 10.13% | 4 398.82      | 2 785.81       | 52 785.81       | 4 398.82 / 3 976.74 / 422.08 / 46 023.26             | 4 398.79 / 4 361.97 / 36.82 / 0.00    |
+| E. Vehicle maximum, R1 500 000, 72 months              | 8.5%   | 26 667.58     | 420 065.44     | 1 920 065.44    | 26 667.58 / 16 042.58 / 10 625.00 / 1 483 957.42     | 26 667.26 / 26 479.70 / 187.56 / 0.00 |
+| F. Zero interest, R1 000, 3 months                     | 0%     | 333.34        | 0.00           | 1 000.00        | 333.34 / 333.34 / 0.00 / 666.66                      | 333.32 / 333.32 / 0.00 / 0.00         |
 
-**Verification (Phase 2):** all eight cases and the case 2 derived values were re-derived independently with 50-digit decimal arithmetic (Python `decimal`, not the TypeScript implementation) before the implementation was written. Every value below matched; no correction was needed. The same table is the `reference cases` suite in `model/calculate.test.ts`.
+Eligibility scenarios (income, expenses, debt, amount, term, score, status, months employed):
 
-Monthly rate r = 0.195 / 12 = 0.01625. The factors below can be checked with any spreadsheet's `PMT(0.195/12, n, -P)`.
+| #   | Inputs                                                    | Result                                                                                                                          |
+| --- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| S1  | 25 000, 15 000, 5 000, 150 000, 24, 650, employed, 24     | eligible; max and recommended R42 000; 12.5%; payment 1 986.91; total 47 685.77; 50%, medium; DTI 20; LTI 50; poor              |
+| S2  | 40 000, 15 000, 3 000, 100 000, 36, 720, employed, 36     | eligible; max R266 000; recommended R100 000; 11.5%; payment 3 297.60; total 118 713.62; 95%, low; DTI 7.5; LTI 20.8; excellent |
+| S3  | 30 000, 12 000, 3 000, 80 000, 48, none, self-employed, 6 | eligible; max R217 000; recommended R80 000; 14.5%; payment 2 206.24; 70%, medium                                               |
+| S4  | as S3 with a score of 700, unemployed                     | not eligible; max and recommended 0; 15%, high                                                                                  |
+| S5  | 12 000, 9 000, 3 000, 20 000, 24, 650, employed, 24       | not eligible: nothing left after commitments; disposable 3 000; DTI 25; poor                                                    |
+| S6  | 5 000, 4 500, 0, 20 000, 6, 650, employed, 24             | not eligible: even R5 000 does not fit; disposable 500                                                                          |
+| S7  | 18 000, 8 000, 2 000, 30 000, 36, 540, retired, 12        | eligible; recommended R30 000; 18.5%; payment 1 092.11; 55%, medium                                                             |
 
-| #   | Income    | Expenses | Debt  | Loan    | Term | Available    | Instalment | **Repayment** | Limit (40%) | **Outcome**                                               | Remaining  | Total repayable |
-| --- | --------- | -------- | ----- | ------- | ---- | ------------ | ---------- | ------------- | ----------- | --------------------------------------------------------- | ---------- | --------------- |
-| 1   | 28 500    | 14 200   | 3 150 | 60 000  | 48   | 11 150.00    | 1 809.88   | **1 878.88**  | 4 460.00    | **within** (17%)                                          | 9 271.12   | 90 186.24       |
-| 2   | 18 000    | 11 500   | 2 400 | 120 000 | 36   | 4 100.00     | 4 429.12   | **4 498.12**  | 1 640.00    | **above** (110%)                                          | −398.12    | 161 932.32      |
-| 3   | 12 000    | 9 800    | 2 600 | 20 000  | 24   | −400.00      | 1 013.04   | **1 082.04**  | 0           | **none** ("are R400 more than")                           | −1 482.04  | 25 968.96       |
-| 4   | 12 000    | 9 000    | 3 000 | 20 000  | 24   | 0.00         | 1 013.04   | **1 082.04**  | 0           | **none** ("use all of")                                   | −1 082.04  | 25 968.96       |
-| 5   | 2 705.10  | 0        | 0     | 20 000  | 24   | 2 705.10     | 1 013.04   | **1 082.04**  | 1 082.04    | **within**: boundary, 5 × 108 204 = 2 × 270 510 = 541 020 | 1 623.06   | 25 968.96       |
-| 6   | 2 705.09  | 0        | 0     | 20 000  | 24   | 2 705.09     | 1 013.04   | **1 082.04**  | 1 082.03    | **above**: 541 020 > 541 018                              | 1 623.05   | 25 968.96       |
-| 7   | 1 000     | 0        | 0     | 1 000   | 12   | 1 000.00     | 92.40      | **161.40**    | 400.00      | **within** (minimum loan and income)                      | 838.60     | 1 936.80        |
-| 8   | 1 000 000 | 0        | 0     | 250 000 | 60   | 1 000 000.00 | 6 554.11   | **6 623.11**  | 400 000.00  | **within** (maximum loan)                                 | 993 376.89 | 397 386.60      |
+## 7. Boundaries covered by tests
 
-Derived values for case 2 (above): **maxLoan = R42 000** over 36 months (repayment R1 619.19 ≤ R1 640; R43 000 gives R1 656.10, which is above the limit). **repay60 = R3 214.97**, still above the limit.
-
-Zero-interest function check (not reachable through the UI): P = R12 000, n = 12, r = 0 → instalment R1 000.00, repayment R1 069.00.
-
-Note: the handoff quotes "R1 878.96" only as a formatting sample, and the design text says "~R1 879". The exact value for case 1 is **R1 878.88** (R1 809.88 + R69).
-
-## 7. Boundary cases (unit-tested)
-
-- `available == 0` → none, and `available < 0` → none, including the "use all of" and "are R… more than" wording.
-- `5·repayment == 2·available` → within (case 5), and one cent less income → above (case 6).
-- Input bounds: income R999.99 rejected and R1 000 accepted, R1 000 000 accepted and R1 000 000.01 rejected. Same pattern for loan R1 000 / R250 000 and for expenses and debt R0 / R1 000 000.
-- Parsing: `"28 500"`, `"28500"`, `"R28,500"`, `"28 500,50"`, `" 0 "` accepted; `"12,5,00"`, `"1.234"`, `"abc"`, `"1e5"` malformed; `"-5 000"` negative; `""` empty.
-- Half-up rounding at exactly .5 of a cent in the instalment (via the pure rounding helper).
-- Negative remaining formatted with U+2212, and NBSP grouping on numbers of 4 or more digits.
-- maxLoan never contradicts the outcome rule (property check across terms and availability levels).
+A payment that fits at exactly 40% and one cent over; the R1 000 step search at the product's minimum and maximum; zero and negative available money; the smallest and largest amounts and terms of each product; rounding at exactly half a cent; the final-payment adjustment; principal totals equal to the loan; the balance ending at zero; the optional credit score at every band edge (549/550, 599/600, 649/650, 699/700, 749/750); an unsupported `loanType`; and invalid requests (missing, wrong type, out of range, more than two decimals).

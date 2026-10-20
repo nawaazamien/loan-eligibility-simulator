@@ -1,74 +1,54 @@
-import { ChevronDown } from 'lucide-react';
-import { useId, useState } from 'react';
-
-import { cx } from '../../styles/cx';
+import { Disclosure } from './Disclosure';
 import styles from './AssumptionsDisclosure.module.css';
 
-/** Verbatim from the design (HANDOFF §5). Every value here is fictional. */
+/**
+ * "How this estimate is made". The employer's specification defines the API's fields but not
+ * how an estimate is decided, so these rules are this demo's own fictional assumptions
+ * (docs/SIMULATION_MODEL.md). They are not the employer's rules or any lender's policy.
+ */
 const ASSUMPTIONS = [
   {
     term: 'Interest rate',
     detail:
-      '19.5% a year, fixed for the full term. Interest is calculated monthly on the outstanding balance.',
+      "Within the product's published range, set by credit score: a better score gets a lower rate. With no score given, the middle of the range applies. The rate is fixed for the term and charged monthly on the outstanding balance.",
   },
   {
-    term: 'Fees',
-    detail: 'A R69 monthly service fee is added to every repayment. No initiation fee is included.',
-  },
-  {
-    term: 'Affordability rule',
+    term: 'What you can afford',
     detail:
-      'Take-home income minus living expenses and existing debt gives the money you have left. The new repayment may use up to 40% of it.',
+      'Monthly income minus expenses and existing debt repayments is what you have left. The new monthly payment may use up to 40% of it. The maximum amount is the largest R1 000 step that fits.',
   },
   {
-    term: 'Outcomes',
+    term: 'Employment',
     detail:
-      'Within the limit, above the limit, or no room when expenses and existing debt use all of your income.',
+      'Unemployed applicants are not assessed. A longer time in employment slightly improves the likelihood.',
+  },
+  {
+    term: 'Likelihood and risk',
+    detail:
+      'The approval likelihood is a simple score from your credit score, how comfortably the payment fits and your employment. Risk is low, medium or high from that likelihood.',
   },
   {
     term: 'Not considered',
     detail:
-      'Credit history, credit insurance, rate changes, employment or any credit bureau information.',
+      'Credit history, credit insurance, fees, rate changes, or any credit bureau information.',
   },
 ] as const;
 
-/** "How this estimate is calculated": a button with aria-expanded controlling a hidden panel. */
 export function AssumptionsDisclosure() {
-  const [open, setOpen] = useState(false);
-  const panelId = useId();
-
   return (
-    <div className={styles.disclosure}>
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={() => {
-          setOpen((wasOpen) => !wasOpen);
-        }}
-        className={styles.toggle}
-      >
-        <span>How this estimate is calculated</span>
-        <ChevronDown
-          aria-hidden="true"
-          size={18}
-          strokeWidth={1.5}
-          className={cx(styles.chevron, open && styles.open)}
-        />
-      </button>
-      <div id={panelId} hidden={!open} className={styles.panel}>
-        <dl className={styles.list}>
-          {ASSUMPTIONS.map(({ term, detail }) => (
-            <div key={term} className={styles.row}>
-              <dt className={styles.term}>{term}</dt>
-              <dd className={styles.detail}>{detail}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className={styles.footnote}>
-          All rates, fees and rules are fictional and used for demonstration only.
-        </p>
-      </div>
-    </div>
+    <Disclosure title="How this estimate is made">
+      <dl className={styles.list}>
+        {ASSUMPTIONS.map(({ term, detail }) => (
+          <div key={term} className={styles.row}>
+            <dt className={styles.term}>{term}</dt>
+            <dd className={styles.detail}>{detail}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className={styles.footnote}>
+        All rates, rules and results here are fictional and used for demonstration only. They are
+        not a real lender's policy and not the employer's rules.
+      </p>
+    </Disclosure>
   );
 }

@@ -1,5 +1,7 @@
 # Design handoff — what was imported and what it specifies
 
+> **Phase 6 note.** The design remains the visual reference (layout, copy, tokens, states). Its **simulation logic** (a fixed 19.5% rate, a R69 fee, the within/above/none outcome, fixed 12–60 month term choices and no age, employment or credit score inputs) predates the employer's API specification and is superseded: the results panel now shows what the API returns, and the form follows the validation rules. See [API.md](API.md), [SIMULATION_MODEL.md](SIMULATION_MODEL.md) and DECISIONS D-054 to D-066. Sections below describe the design as imported.
+
 This summarises the approved design as inspected on 2026-10-19. The verbatim source files are in [`design/reference/`](../design/reference/). Where this summary and the reference disagree, the reference wins, unless [DECISIONS.md](DECISIONS.md) records a deliberate change.
 
 ## 1. Import record

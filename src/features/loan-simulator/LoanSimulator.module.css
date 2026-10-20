@@ -10,3 +10,36 @@
     grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   }
 }
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: var(--card-pad);
+}
+
+.noticeHeading {
+  font-size: 1.5625rem;
+}
+
+.loadError {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 2px solid var(--color-critical);
+}
+
+.loadError:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.loadError strong {
+  font-weight: 600;
+}

@@ -11,14 +11,34 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { App } from './app/App';
+import { MockApiError } from './app/MockApiError';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error('Root element #root not found in index.html');
 }
+const root = createRoot(rootElement);
 
-createRoot(rootElement).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+/**
+ * With no VITE_API_BASE_URL the app runs against its in-browser mock API, which must be
+ * started (and have taken control of the page) before anything can call it. With a real API
+ * configured, the mock is not started or even downloaded.
+ */
+async function startApiMocking(): Promise<void> {
+  if (import.meta.env.VITE_API_BASE_URL) return;
+  const { startMockApi } = await import('./mock-api/browser');
+  await startMockApi();
+}
+
+startApiMocking().then(
+  () => {
+    root.render(
+      <StrictMode>
+        <App />
+      </StrictMode>,
+    );
+  },
+  () => {
+    root.render(<MockApiError />);
+  },
 );

@@ -16,16 +16,18 @@ describe('App shell', () => {
     expect(h1s[0]).toHaveTextContent('Loan eligibility simulator');
   });
 
-  it('labels the form and estimate panels by their visible headings', () => {
+  it('labels the form and estimate panels by their visible headings', async () => {
     render(<App />);
+    await screen.findByRole('form', { name: 'Your details' });
 
     const main = screen.getByRole('main');
     expect(within(main).getByRole('form', { name: 'Your details' })).toBeInTheDocument();
     expect(within(main).getByRole('region', { name: 'Your estimate' })).toBeInTheDocument();
   });
 
-  it('keeps a logical heading order', () => {
+  it('keeps a logical heading order', async () => {
     render(<App />);
+    await screen.findByRole('form', { name: 'Your details' });
 
     const headings = screen
       .getAllByRole('heading')
@@ -49,8 +51,9 @@ describe('App shell', () => {
     );
   });
 
-  it('shows no rand figures in the estimate panel before any calculation exists', () => {
+  it('shows no rand figures in the estimate panel before any calculation exists', async () => {
     render(<App />);
+    await screen.findByRole('form', { name: 'Your details' });
 
     const estimate = screen.getByRole('region', { name: 'Your estimate' });
     expect(randFigures(estimate)).toEqual([]);

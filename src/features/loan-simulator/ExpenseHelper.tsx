@@ -7,7 +7,7 @@ import { CurrencyField } from './CurrencyField';
 import styles from './ExpenseHelper.module.css';
 import type { ExpenseHelperState } from './expenseHelperState';
 import type { FormAction } from './formState';
-import { AMOUNT_BOUNDS_CENTS } from './model/constants';
+import { MAX_MONEY_CENTS } from './model/constants';
 import { EXPENSE_CATEGORIES, totalDraft } from './model/expenses';
 import { formatCents } from './model/format';
 
@@ -24,7 +24,7 @@ function totalLine(helper: ExpenseHelperState): string {
   const total = totalDraft(helper.draft);
   if (total.ok) return `Total ${money(total.cents)} a month`;
   if (total.reason === 'tooLarge') {
-    return `Total ${money(total.cents)} a month, more than the ${formatCents(AMOUNT_BOUNDS_CENTS.expenses.max)} limit`;
+    return `Total ${money(total.cents)} a month, more than the ${formatCents(MAX_MONEY_CENTS)} limit`;
   }
   return "Some amounts can't be read yet, so there's no total to show. Correct them to see it.";
 }

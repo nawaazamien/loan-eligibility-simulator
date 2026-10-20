@@ -8,8 +8,9 @@ import {
   type ExpenseCategory,
   type ExpenseDraft,
 } from './model/expenses';
+import { parseAmount } from './model/amount';
+import { MAX_MONEY_CENTS } from './model/constants';
 import { centsToInputText, formatAmountOnBlur } from './model/format';
-import { checkAmount } from './model/validate';
 
 /**
  * State of the optional "Help me calculate my expenses" helper. The draft is only a helper:
@@ -47,8 +48,9 @@ export const initialExpenseHelper: ExpenseHelperState = {
 
 /** The expenses field's value in cents, or null when it is empty or invalid. */
 function expensesCents(text: string): number | null {
-  const check = checkAmount('expenses', text);
-  return check.ok ? check.cents : null;
+  // Monthly expenses have a minimum of R0 in the validation rules, and the project ceiling above.
+  const parsed = parseAmount(text);
+  return parsed.kind === 'ok' && parsed.cents <= MAX_MONEY_CENTS ? parsed.cents : null;
 }
 
 /**

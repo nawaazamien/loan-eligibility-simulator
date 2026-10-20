@@ -85,3 +85,9 @@
     display: none;
   }
 }
+
+.productNote {
+  font-size: var(--text-hint);
+  line-height: var(--leading-hint);
+  color: var(--color-neutral-800);
+}

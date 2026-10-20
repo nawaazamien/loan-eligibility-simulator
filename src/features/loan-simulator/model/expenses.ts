@@ -1,5 +1,5 @@
 import { parseAmount } from './amount';
-import { AMOUNT_BOUNDS_CENTS } from './constants';
+import { MAX_MONEY_CENTS } from './constants';
 import { formatCents } from './format';
 
 /**
@@ -47,7 +47,7 @@ export function mapDraft(value: (category: ExpenseCategory) => string): ExpenseD
 }
 
 /** Each category, and their total, must fit the monthly-expenses bound. */
-const MAX_CENTS = AMOUNT_BOUNDS_CENTS.expenses.max;
+const MAX_CENTS = MAX_MONEY_CENTS;
 
 export type CategoryCheck =
   { readonly ok: true; readonly cents: number } | { readonly ok: false; readonly message: string };

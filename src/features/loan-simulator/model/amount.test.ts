@@ -1,4 +1,4 @@
-import { parseAmount } from './amount';
+import { parseAmount, parseWhole } from './amount';
 
 describe('parseAmount', () => {
   it.each([
@@ -30,5 +30,32 @@ describe('parseAmount', () => {
 
   it.each(['-5 000', '-0.01', 'R-200'])('flags %j as negative', (raw) => {
     expect(parseAmount(raw)).toEqual({ kind: 'negative' });
+  });
+});
+
+describe('parseWhole', () => {
+  it.each([
+    ['35', 35],
+    [' 035 ', 35],
+    ['35.00', 35],
+    ['1 000', 1000],
+    ['0', 0],
+  ])('reads %j as %d', (raw, value) => {
+    expect(parseWhole(raw)).toEqual({ kind: 'ok', value });
+  });
+
+  it('keeps empty distinct from zero', () => {
+    expect(parseWhole('')).toEqual({ kind: 'empty' });
+    expect(parseWhole('  ')).toEqual({ kind: 'empty' });
+  });
+
+  it.each(['35.5', '35.01', 'abc', '3 5x', '1e2', '12,5,00'])('rejects %j as malformed', (raw) => {
+    expect(parseWhole(raw)).toEqual({ kind: 'malformed' });
+  });
+
+  it('flags negatives and refuses numbers too large to hold exactly', () => {
+    expect(parseWhole('-3')).toEqual({ kind: 'negative' });
+    expect(parseWhole('9'.repeat(30))).toEqual({ kind: 'malformed' });
+    expect(parseWhole('1' + '0'.repeat(20))).toEqual({ kind: 'malformed' });
   });
 });

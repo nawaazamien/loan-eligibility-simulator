@@ -1,4 +1,4 @@
-import { parseAmount } from './amount';
+import { parseAmount, parseWhole } from './amount';
 
 const NBSP = ' ';
 const MINUS = '−';
@@ -45,4 +45,15 @@ export function formatCents(cents: number, { withCents = false } = {}): string {
 /** A whole-rand display figure ("R250 000"). */
 export function formatRand(rand: number): string {
   return formatCents(rand * 100);
+}
+
+/** Tidies a whole-number field on blur ("035" → "35"); anything unreadable stays as typed. */
+export function formatWholeOnBlur(raw: string): string {
+  const parsed = parseWhole(raw);
+  return parsed.kind === 'ok' ? String(parsed.value) : raw;
+}
+
+/** A percentage to one decimal place without a trailing ".0": 20 → "20%", 7.5 → "7.5%". */
+export function formatPercent(value: number): string {
+  return `${Number.isInteger(value) ? String(value) : value.toFixed(1)}%`;
 }

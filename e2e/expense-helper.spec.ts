@@ -7,7 +7,8 @@ import {
   estimate,
   field,
   horizontalOverflow,
-  WITHIN,
+  FULL,
+  openApp,
 } from './helpers';
 
 const toggle = (page: Page) => page.getByRole('button', { name: 'Help me calculate my expenses' });
@@ -30,7 +31,7 @@ const TEXT_SPACING = `* { line-height: 1.5 !important; letter-spacing: 0.12em !i
 
 test.describe('expense helper', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await openApp(page);
     await page.evaluate(() => document.fonts.ready);
   });
 
@@ -93,15 +94,15 @@ test.describe('expense helper', () => {
   test('a changed total marks the estimate out of date; an equal one does not', async ({
     page,
   }) => {
-    await calculateEstimate(page, WITHIN);
+    await calculateEstimate(page, FULL);
 
     await toggle(page).click();
     await category(page, 'Other living expenses').fill('');
     await category(page, 'Housing').fill('9000');
-    await category(page, 'Food and groceries').fill('5200');
+    await category(page, 'Food and groceries').fill('6000');
     await useTotal(page).click();
-    await expect(field(page, 'Monthly living expenses')).toHaveValue('14 200');
-    await expect(estimate(page).getByRole('status')).toBeEmpty();
+    await expect(field(page, 'Monthly living expenses')).toHaveValue('15 000');
+    await expect(estimate(page).getByText('Your inputs have changed.')).toHaveCount(0);
 
     await toggle(page).click();
     await category(page, 'Food and groceries').fill('4000');
@@ -111,7 +112,7 @@ test.describe('expense helper', () => {
     await expectNoViolations(page);
 
     await calculate(page).click();
-    await expect(estimate(page).getByRole('status')).toBeEmpty();
+    await expect(estimate(page).getByText('Your inputs have changed.')).toHaveCount(0);
   });
 });
 
@@ -122,7 +123,7 @@ test.describe('expense helper with text spacing increased (WCAG 1.4.12)', () => 
   test.use({ bypassCSP: true });
 
   test('fits the page and keeps its actions visible', async ({ page }) => {
-    await page.goto('/');
+    await openApp(page);
     await toggle(page).click();
     await page.addStyleTag({ content: TEXT_SPACING });
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);

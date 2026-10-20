@@ -1,6 +1,13 @@
 import { expect, test } from '@playwright/test';
 
-import { calculateEstimate, estimate, horizontalOverflow } from './helpers';
+import {
+  calculateEstimate,
+  estimate,
+  FULL,
+  horizontalOverflow,
+  openApp,
+  openSchedule,
+} from './helpers';
 
 /**
  * Runs in the "firefox-large-text" project (playwright.config.ts), which raises Firefox's
@@ -9,40 +16,29 @@ import { calculateEstimate, estimate, horizontalOverflow } from './helpers';
  */
 test.describe('larger default text size', () => {
   test('follows the browser text size without clipping', async ({ page }) => {
-    await page.goto('/');
+    await openApp(page);
 
     const label = page.locator('label', { hasText: 'Monthly take-home income' });
     expect(await label.evaluate((el) => parseFloat(getComputedStyle(el).fontSize))).toBe(30);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
-
-    // The term choices wrap instead of being cut off at the group's edge.
-    const group = page.getByRole('group', { name: 'Repayment term' });
-    const allInside = await group.evaluate((fieldset) => {
-      const bounds = fieldset.getBoundingClientRect();
-      return [...fieldset.querySelectorAll('label')].every((label) => {
-        const box = label.getBoundingClientRect();
-        return (
-          box.left >= bounds.left - 1 &&
-          box.right <= bounds.right + 1 &&
-          label.scrollWidth <= label.clientWidth + 1
-        );
-      });
-    });
-    expect(allInside).toBe(true);
   });
 
   test('keeps the longest repayment figure whole, on one line', async ({ page }) => {
-    await page.goto('/');
-    // R250 000 over 12 months gives the longest figure the model can produce: R23 167.84.
+    await openApp(page);
+    // R250 000 over 12 months with a score that earns the lowest rate gives a long figure.
     await calculateEstimate(page, {
+      ...FULL,
       income: '1000000',
       expenses: '0',
       debt: '0',
+      score: '850',
       loan: '250000',
-      term: 12,
+      term: '12',
     });
 
-    const figure = estimate(page).getByText('R23 167.84', { exact: true });
+    const figure = estimate(page)
+      .locator('p', { hasText: /^R\d[\d\s]*\.\d\d$/ })
+      .first();
     await expect(figure).toBeVisible();
     const { lines, fontSize } = await figure.evaluate((el) => {
       const size = parseFloat(getComputedStyle(el).fontSize);
@@ -54,8 +50,18 @@ test.describe('larger default text size', () => {
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
   });
 
+  test('the schedule scrolls inside its own region rather than widening the page', async ({
+    page,
+  }) => {
+    await openApp(page);
+    await calculateEstimate(page, FULL);
+    const table = await openSchedule(page);
+    await expect(table).toBeVisible();
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
+  });
+
   test('the expense helper fits and stays usable', async ({ page }) => {
-    await page.goto('/');
+    await openApp(page);
     await page.getByRole('button', { name: 'Help me calculate my expenses' }).click();
     await expect(page.getByRole('button', { name: 'Use this total' })).toBeVisible();
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);

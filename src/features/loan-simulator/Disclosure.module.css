@@ -1,0 +1,37 @@
+.disclosure {
+  border-top: var(--border);
+}
+
+.toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 0 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: var(--text-label);
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.toggle:focus-visible {
+  outline-offset: 4px;
+}
+
+.chevron {
+  flex: none;
+}
+
+.open {
+  transform: rotate(180deg);
+}
+
+.panel {
+  padding-top: 12px;
+}

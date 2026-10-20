@@ -1,5 +1,7 @@
 # Phase 4 submission review
 
+> **Historical record.** This review is against the employer's **email brief** only, which Phases 0–5 met. The email's attachment, an API specification, was overlooked until after Phase 5. Phase 6 aligns the app with it; the current verdict, requirement checklist and manual gaps are in [the Phase 6 review](../phase-6/SUBMISSION_REVIEW.md). The 19.5% / R69 / 40% model referred to below is superseded (DECISIONS D-054, D-056).
+
 **Verdict: ready for submission with documented manual verification gaps.** Every automated and scripted check below passed after the fixes in §5. Some manual checks have **not** been performed: a real screen reader, real browser zoom, real Windows high contrast, and Safari or a physical phone. They are listed in §7. This is not a claim that all manual checks passed.
 
 ## 1. What was tested

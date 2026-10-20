@@ -53,11 +53,6 @@
 }
 
 /* The status region stays mounted while a result exists, so it takes no space when empty. */
-.result {
-  display: flex;
-  flex-direction: column;
-}
-
 .staleBanner {
   display: flex;
   gap: 12px;
@@ -103,4 +98,45 @@
     position: sticky;
     top: 16px;
   }
+}
+
+/* Takes no space while empty. */
+.statusRegion:empty {
+  display: none;
+}
+
+.pending {
+  font-size: var(--text-label);
+  font-weight: 500;
+}
+
+.failure {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 2px solid var(--color-critical);
+}
+
+.failure:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.failureIcon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-critical);
+}
+
+.failureBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.failureBody strong {
+  font-weight: 600;
 }

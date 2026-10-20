@@ -54,3 +54,8 @@ services:
       - path: /third-party-notices.txt
         name: Cache-Control
         value: no-cache
+      # The mock API's service worker script must always be revalidated, so an updated worker
+      # is picked up on the next visit (docs/API.md).
+      - path: /mockServiceWorker.js
+        name: Cache-Control
+        value: no-cache

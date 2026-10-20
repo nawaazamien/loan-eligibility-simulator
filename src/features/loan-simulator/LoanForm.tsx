@@ -8,33 +8,14 @@ import { cx } from '../../styles/cx';
 import { CurrencyField } from './CurrencyField';
 import { ErrorSummary } from './ErrorSummary';
 import { ExpenseHelper } from './ExpenseHelper';
-import type { AmountField, FormAction, FormState, FormStatus } from './formState';
+import type { FormAction, FormState, FormStatus } from './formState';
 import styles from './LoanForm.module.css';
-import { LoanAmountField } from './LoanAmountField';
-import { formatCents } from './model/format';
-import { AMOUNT_FIELDS } from './model/validate';
-import { TermSelector } from './TermSelector';
-
-type BudgetField = Exclude<AmountField, 'loan'>;
-
-/** Labels and helper text, verbatim from the design (HANDOFF §5). */
-const BUDGET_FIELDS: readonly { field: BudgetField; label: string; hint: string }[] = [
-  {
-    field: 'income',
-    label: 'Monthly take-home income',
-    hint: 'The money you receive each month after tax and other deductions.',
-  },
-  {
-    field: 'expenses',
-    label: 'Monthly living expenses',
-    hint: "Rent, groceries, transport, school fees and similar costs. Don't include debt repayments.",
-  },
-  {
-    field: 'debt',
-    label: 'Existing monthly debt repayments',
-    hint: "Repayments on current loans, credit cards and store accounts. Don't include the loan you're simulating. Enter 0 if you have none.",
-  },
-];
+import { EMPLOYMENT_LABELS, FIELDS, PURPOSE_LABELS, type Field } from './model/fields';
+import { formatCents, formatPercent, formatRand } from './model/format';
+import { ProductInfo } from './ProductInfo';
+import { RangeSlider } from './RangeSlider';
+import { amountSliderRange, termSliderRange, type FormRules } from './rules';
+import { SelectField } from './SelectField';
 
 /** The example and reset messages are verbatim from the design (HANDOFF §5). */
 function statusText(status: Exclude<FormStatus, null>, state: FormState): string {
@@ -53,32 +34,45 @@ function statusText(status: Exclude<FormStatus, null>, state: FormState): string
   }
 }
 
+function between(min: number | undefined, max: number | undefined, unit: string): string {
+  if (min !== undefined && max !== undefined) {
+    return `${String(min)} to ${String(max)} ${unit}`;
+  }
+  return min === undefined ? '' : `at least ${String(min)} ${unit}`;
+}
+
 interface LoanFormProps {
   state: FormState;
   dispatch: Dispatch<FormAction>;
+  rules: FormRules;
   /** Whether the estimate shown no longer matches these inputs. */
   isStale: boolean;
   summaryRef: Ref<HTMLDivElement>;
 }
 
-export function LoanForm({ state, dispatch, isStale, summaryRef }: LoanFormProps) {
+export function LoanForm({ state, dispatch, rules, isStale, summaryRef }: LoanFormProps) {
   const idBase = useId();
   const headingId = `${idBase}-heading`;
-  const incomeRef = useRef<HTMLInputElement>(null);
+  const ageRef = useRef<HTMLInputElement>(null);
   const expensesRef = useRef<HTMLInputElement>(null);
+  const pending = state.pending !== null;
 
-  const fieldId = (field: AmountField) => `${idBase}-${field}`;
-  const edit = (field: AmountField) => (text: string) => {
+  const fieldId = (field: Field) => `${idBase}-${field}`;
+  const edit = (field: Field) => (text: string) => {
     dispatch({ type: 'edit', field, text });
   };
-  const blur = (field: AmountField) => () => {
+  const blur = (field: Field) => () => {
     dispatch({ type: 'blur', field });
   };
 
-  const summaryErrors = AMOUNT_FIELDS.flatMap((field) => {
+  const summaryErrors = FIELDS.flatMap((field) => {
     const message = state.errors[field];
     return message ? [{ fieldId: fieldId(field), message }] : [];
   });
+
+  const amountRange = amountSliderRange(rules);
+  const termRange = termSliderRange(rules);
+  const { product } = rules;
 
   return (
     <form
@@ -110,65 +104,198 @@ export function LoanForm({ state, dispatch, isStale, summaryRef }: LoanFormProps
       )}
 
       <fieldset className={styles.group}>
+        <legend className={styles.legend}>About you</legend>
+        <CurrencyField
+          id={fieldId('age')}
+          name="age"
+          label="Age"
+          hint={`Your age in years, ${between(rules.age.min, rules.age.max, 'years')}.`}
+          prefix=""
+          unit="in years"
+          inputMode="numeric"
+          value={state.values.age}
+          error={state.errors.age}
+          onChange={edit('age')}
+          onBlur={blur('age')}
+          inputRef={ageRef}
+        />
+        <SelectField
+          id={fieldId('employmentStatus')}
+          name="employmentStatus"
+          label="Employment status"
+          value={state.values.employmentStatus}
+          options={rules.employmentStatus.options.map((value) => ({
+            value,
+            label: EMPLOYMENT_LABELS[value],
+          }))}
+          placeholder="Select your employment status"
+          error={state.errors.employmentStatus}
+          onChange={edit('employmentStatus')}
+          onBlur={blur('employmentStatus')}
+        />
+        <CurrencyField
+          id={fieldId('employmentDuration')}
+          name="employmentDuration"
+          label="Time in current employment"
+          hint={`How long you have been in your current work or income source, in whole months${rules.employmentDuration.min === undefined ? '' : `. At least ${String(rules.employmentDuration.min)}`}.`}
+          prefix=""
+          unit="in months"
+          inputMode="numeric"
+          value={state.values.employmentDuration}
+          error={state.errors.employmentDuration}
+          onChange={edit('employmentDuration')}
+          onBlur={blur('employmentDuration')}
+        />
+      </fieldset>
+
+      <fieldset className={styles.group}>
         <legend className={styles.legend}>Your monthly budget</legend>
-        {BUDGET_FIELDS.map(({ field, label, hint }) => (
-          <CurrencyField
-            key={field}
-            id={fieldId(field)}
-            name={field}
-            label={label}
-            hint={hint}
-            value={state.values[field]}
-            error={state.errors[field]}
-            onChange={edit(field)}
-            onBlur={blur(field)}
-            {...(field === 'income' ? { inputRef: incomeRef } : {})}
-            {...(field === 'expenses' ? { inputRef: expensesRef } : {})}
-          >
-            {field === 'expenses' && (
-              <ExpenseHelper
-                helper={state.expenseHelper}
-                dispatch={dispatch}
-                expensesInputRef={expensesRef}
-              />
-            )}
-          </CurrencyField>
-        ))}
+        <CurrencyField
+          id={fieldId('income')}
+          name="income"
+          label="Monthly take-home income"
+          hint={`The money you receive each month after tax and other deductions. At least ${formatCents(rules.income.minCents)}.`}
+          value={state.values.income}
+          error={state.errors.income}
+          onChange={edit('income')}
+          onBlur={blur('income')}
+        />
+        <CurrencyField
+          id={fieldId('expenses')}
+          name="expenses"
+          label="Monthly living expenses"
+          hint="Rent, groceries, transport, school fees and similar costs. Don't include debt repayments."
+          value={state.values.expenses}
+          error={state.errors.expenses}
+          onChange={edit('expenses')}
+          onBlur={blur('expenses')}
+          inputRef={expensesRef}
+        >
+          <ExpenseHelper
+            helper={state.expenseHelper}
+            dispatch={dispatch}
+            expensesInputRef={expensesRef}
+          />
+        </CurrencyField>
+        <CurrencyField
+          id={fieldId('debt')}
+          name="debt"
+          label="Existing monthly debt repayments"
+          hint="Repayments on current loans, credit cards and store accounts. Don't include the loan you're simulating. Enter 0 if you have none."
+          value={state.values.debt}
+          error={state.errors.debt}
+          onChange={edit('debt')}
+          onBlur={blur('debt')}
+        />
+        <CurrencyField
+          id={fieldId('creditScore')}
+          name="creditScore"
+          label="Credit score (optional)"
+          hint={`Between ${String(rules.creditScore.min ?? '')} and ${String(rules.creditScore.max ?? '')}. Leave it blank if you don't know it: a middle-of-the-range rate is used.`}
+          prefix=""
+          unit={null}
+          inputMode="numeric"
+          value={state.values.creditScore}
+          error={state.errors.creditScore}
+          onChange={edit('creditScore')}
+          onBlur={blur('creditScore')}
+        />
       </fieldset>
 
       <fieldset className={styles.group}>
         <legend className={styles.legend}>The loan you'd like</legend>
-        <LoanAmountField
-          id={fieldId('loan')}
-          value={state.values.loan}
-          error={state.errors.loan}
-          sliderValue={state.loanSlider}
-          onChange={edit('loan')}
-          onBlur={blur('loan')}
-          onSlide={(rand) => {
-            dispatch({ type: 'slide', rand });
-          }}
+        <p className={styles.productNote}>
+          This estimate is for the {product.name}: {formatRand(product.minAmount)} to{' '}
+          {formatRand(product.maxAmount)} over {String(product.minTerm)} to{' '}
+          {String(product.maxTerm)} months, at {formatPercent(product.interestRateRange.min)} to{' '}
+          {formatPercent(product.interestRateRange.max)} a year depending on credit score.
+        </p>
+        <SelectField
+          id={fieldId('purpose')}
+          name="purpose"
+          label="Loan purpose"
+          value={state.values.purpose}
+          options={rules.purposes.map((value) => ({ value, label: PURPOSE_LABELS[value] }))}
+          placeholder="Select what the loan is for"
+          error={state.errors.purpose}
+          onChange={edit('purpose')}
+          onBlur={blur('purpose')}
         />
-        <TermSelector
-          value={state.term}
-          onChange={(term) => {
-            dispatch({ type: 'selectTerm', term });
-          }}
-        />
+        <CurrencyField
+          id={fieldId('amount')}
+          name="amount"
+          label="Loan amount"
+          hint={`Choose an amount between ${formatCents(rules.amount.minCents)} and ${formatCents(amountRange.max * 100)}.`}
+          value={state.values.amount}
+          error={state.errors.amount}
+          onChange={edit('amount')}
+          onBlur={blur('amount')}
+        >
+          <RangeSlider
+            label="Loan amount slider"
+            min={amountRange.min}
+            max={amountRange.max}
+            step={amountRange.step}
+            value={state.sliders.amount}
+            valueText={formatRand(state.sliders.amount)}
+            endLabels={[formatRand(amountRange.min), formatRand(amountRange.max)]}
+            onChange={(value) => {
+              dispatch({ type: 'slide', which: 'amount', value });
+            }}
+          />
+        </CurrencyField>
+        <CurrencyField
+          id={fieldId('term')}
+          name="term"
+          label="Repayment term"
+          hint={`Between ${String(termRange.min)} and ${String(termRange.max)} months. A longer term lowers the monthly payment but costs more in interest overall.`}
+          prefix=""
+          unit="in months"
+          inputMode="numeric"
+          value={state.values.term}
+          error={state.errors.term}
+          onChange={edit('term')}
+          onBlur={blur('term')}
+        >
+          <RangeSlider
+            label="Repayment term slider"
+            min={termRange.min}
+            max={termRange.max}
+            step={termRange.step}
+            value={state.sliders.term}
+            valueText={`${String(state.sliders.term)} months`}
+            endLabels={[`${String(termRange.min)} months`, `${String(termRange.max)} months`]}
+            onChange={(value) => {
+              dispatch({ type: 'slide', which: 'term', value });
+            }}
+          />
+        </CurrencyField>
       </fieldset>
+
+      <ProductInfo products={rules.products} assessedId={product.id} />
 
       <div className={styles.actions}>
         <div className={styles.buttons}>
-          <Button variant="primary" type="submit" keepFocusOnPress className={styles.calculate}>
+          <Button
+            variant="primary"
+            type="submit"
+            keepFocusOnPress
+            // Not `disabled`: it keeps its place in the tab order and focus, and says why.
+            aria-disabled={pending || undefined}
+            onClick={(event) => {
+              if (pending) event.preventDefault();
+            }}
+            className={styles.calculate}
+          >
             <FrameCorners />
-            Calculate estimate
+            {pending ? 'Calculating…' : 'Calculate estimate'}
           </Button>
           <Button
             variant="secondary"
             keepFocusOnPress
             onClick={() => {
               dispatch({ type: 'reset' });
-              incomeRef.current?.focus();
+              ageRef.current?.focus();
             }}
           >
             Reset

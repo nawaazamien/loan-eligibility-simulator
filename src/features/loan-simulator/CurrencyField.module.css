@@ -74,3 +74,12 @@
   border-color: var(--color-critical);
   box-shadow: 0 0 0 1px var(--color-critical);
 }
+
+/* Fields with no prefix (age, months, credit score) need no room for one. */
+.input.noPrefix {
+  padding-left: 10px;
+}
+
+.select {
+  cursor: pointer;
+}

@@ -82,7 +82,7 @@ jobs:
       - name: Check the image holds only the production files
         run: |
           docker run --rm --entrypoint find loan-eligibility-simulator /usr/share/nginx/tally -type f | sort | tee image-files.txt
-          if grep -vE '^/usr/share/nginx/tally/(index\.html|favicon\.svg|third-party-notices\.txt|assets/[A-Za-z0-9._-]+\.(js|css|woff2?))$' image-files.txt; then
+          if grep -vE '^/usr/share/nginx/tally/(index\.html|favicon\.svg|mockServiceWorker\.js|third-party-notices\.txt|assets/[A-Za-z0-9._-]+\.(js|css|woff2?))$' image-files.txt; then
             echo "Unexpected files in the image (listed above)"; exit 1
           fi
           ! grep -E '\.map$' image-files.txt
@@ -94,6 +94,11 @@ jobs:
           test "$(docker inspect app --format '{{.Config.User}}')" = "101"
           test "$(docker exec app id -u)" = "101"
           curl -fsS -o /dev/null http://127.0.0.1:8080/third-party-notices.txt
+          # The mock API's service worker script: JavaScript, revalidated, with the security headers.
+          curl -fsSI http://127.0.0.1:8080/mockServiceWorker.js > worker.headers
+          grep -qi '^content-type: .*javascript' worker.headers
+          grep -qi '^cache-control: no-cache' worker.headers
+          grep -qi "^content-security-policy: default-src 'self'" worker.headers
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/50x.html)" = "404"
           for asset in $(grep -oE '/assets/[^"]+' index.html); do
             curl -fsS -o /dev/null "http://127.0.0.1:8080${asset}"
