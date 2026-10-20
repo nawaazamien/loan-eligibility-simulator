@@ -134,4 +134,10 @@ No licence has been chosen, as directed by the owner; the brief does not require
 ## 10. Phase 5 additions
 
 - **Expense helper** (D-048 to D-051). Locally: 208 unit tests and 117 browser tests passed, 4 skipped; the helper's state is at 100% coverage (enforced). Axe passes for its expanded, invalid, applied, cancelled and stale states. It has not had a real screen-reader pass; that is still item 3 of §7.
-- **Live demo:** `render.yaml` defines a free Render Static Site with the same headers and 404 behaviour as the container. Deployment status and live verification are recorded in [PROJECT_PLAN.md](../../PROJECT_PLAN.md#phase-5--expense-helper-and-live-demo).
+- **Live demo: https://tally-loan-simulator.onrender.com** (free Render Static Site from `render.yaml`). Verified on 2026-10-20:
+  - the full browser suite against the live URL passed: 122, with 8 skipped;
+  - the security headers and caching are identical to the container's, and unknown paths return 404;
+  - nothing entered is transmitted or stored;
+  - the served bundle hashes match a build of `main`.
+
+  One difference from the container: Render's built-in 404 page has no security headers. Details are in [PROJECT_PLAN.md](../../PROJECT_PLAN.md#phase-5--expense-helper-and-live-demo).

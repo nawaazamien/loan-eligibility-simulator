@@ -2,6 +2,8 @@
 
 A responsive, client-only web app. A customer enters their monthly take-home income, living expenses and existing debt repayments, plus a loan amount and term, and sees an **illustrative** estimated monthly repayment and whether it fits a simple **fictional** affordability rule, with an explanation and suggestions.
 
+**Live demo: [tally-loan-simulator.onrender.com](https://tally-loan-simulator.onrender.com)** (free Render static hosting).
+
 Built for a Front-End Software Engineer recruitment assignment. "Tally" is a fictional product name; the app is not affiliated with any bank or lender.
 
 > **Fictional data.** Every rate, fee, limit and rule here (19.5% a year, a R69 monthly fee, a 40% affordability limit) is made up for demonstration. This is not a credit check, an approval, an offer, or any lender's or regulator's assessment. The app runs entirely in the browser: it stores nothing and sends nothing anywhere.
@@ -125,13 +127,13 @@ Targeting WCAG 2.2 AA. Automated axe checks pass for every tested state at three
 
 ## Hosting
 
-`render.yaml` defines a free [Render](https://render.com) Static Site for a public demo:
+The live demo at https://tally-loan-simulator.onrender.com is a free [Render](https://render.com) Static Site defined in `render.yaml`:
 
 - **Build:** `npm ci && npm run build` on Node 24, publishing `dist/`.
 - **Deploys:** only after CI passes on `main`.
 - **Headers:** the same security headers and caching as the nginx container. There are no rewrite rules, so unknown paths return 404 there too.
 
-Differences from Docker: Render's CDN serves the files and adds HTTPS and Brotli, and the nginx configuration is not used; `render.yaml` reproduces its headers instead.
+Differences from Docker: Render's CDN serves the files and adds HTTPS (with HSTS) and Brotli, and the nginx configuration is not used; `render.yaml` reproduces its headers instead. One difference remains: Render's built-in 404 page is a plain-text "Not Found" without the security headers, which the nginx container sends on every response.
 
 ## Known limitations
 
