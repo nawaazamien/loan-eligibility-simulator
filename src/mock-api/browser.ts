@@ -10,7 +10,20 @@ import { handlers } from './handlers';
  *
  * The worker keeps no state and stores nothing: it only turns a request into a response.
  */
-export async function startMockApi(): Promise<void> {
+let attempt: Promise<void> | null = null;
+
+export function startMockApi(): Promise<void> {
+  // One attempt at a time: a repeat call (a retry, a second render) gets the attempt already in
+  // flight, so the worker is never set up twice. A failed attempt is forgotten so a retry can
+  // start a new one.
+  attempt ??= begin().catch((error: unknown) => {
+    attempt = null;
+    throw error;
+  });
+  return attempt;
+}
+
+async function begin(): Promise<void> {
   const worker = setupWorker(...handlers);
   await worker.start({
     serviceWorker: { url: '/mockServiceWorker.js' },

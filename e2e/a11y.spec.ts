@@ -129,6 +129,7 @@ test.describe('when the mock API cannot start', () => {
       "This demo can't start in this browser",
     );
     await expect(alert).toContainText("your browser didn't allow it");
+    await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible();
     await expectNoViolations(page);
   });
 });

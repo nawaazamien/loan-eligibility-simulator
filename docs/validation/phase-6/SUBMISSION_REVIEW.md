@@ -54,7 +54,7 @@ Closes the gap this review first recorded. `e2e/api-failures.spec.ts` runs at 12
 
 **Defect found and fixed (D-067).** After an edit, Calculate stayed blocked while any request was pending, so an edited form could not be resubmitted until a slow first request finished, although Enter could. It now blocks only while the same inputs are in flight. A component test covers it.
 
-**Test timing.** Under heavy parallel load (8 Firefox workers) the service worker took up to about 20 s to start, once failing an assertion with the default 5 s timeout; the page was simply still starting (blank until then, then "Loading the loan details…"). `playwright.config.ts` now waits up to 20 s for assertions. This is an observation, not a fix: the app shows nothing until the worker is ready, and has no startup timeout. A startup indicator and timeout would be an improvement, not done here to keep scope.
+**Test timing.** Under heavy parallel load (8 Firefox workers) the service worker took up to about 20 s to start, once failing an assertion at Playwright's default 5 s; the page was blank until the worker was ready. `playwright.config.ts` waits up to 20 s for assertions, and the follow-up below makes startup visible and bounded in the app itself.
 
 ## 5. WebKit native-select message
 
@@ -66,3 +66,34 @@ Recorded exactly, with the evidence and the mutation check, in [WEBKIT_SELECT_CS
 - **Firefox and WebKit** run the working flows and the selects; the failure-state suite runs in Chromium only (three widths).
 - **Service workers blocked** was checked in Chromium (the error page), not in the other engines.
 - The failure injection replaces `fetch` in the page, so it does not exercise failures _inside_ the worker itself (for example the worker script failing to update).
+
+## 7. Final cleanup (2026-10-21): the live large-text failure, and startup
+
+### The one failed live check
+
+A full run of the browser suite against the live site had one failure, `firefox-large-text` › "the expense helper fits and stays usable", and the run's output directory was not kept, so there was **no report, trace or screenshot to inspect**. Diagnostic runs, bounded in advance, with traces retained on failure:
+
+| Run                                                        | Result                    |
+| ---------------------------------------------------------- | ------------------------- |
+| Live, `firefox-large-text` only, 20 test runs (earlier)    | 20 passed                 |
+| Live, `firefox-large-text` only, 15 repeats of all 4 tests | 60 passed                 |
+| Live, full suite, twice                                    | 187 passed each, 0 failed |
+
+**Conclusion: not reproduced, cause unexplained.** I did not find a demonstrated application or test defect and I am not classifying it as "just flaky" on the strength of the later passes. What is known: that test measures horizontal overflow and the position of inputs at a 32 px default font straight after opening the helper, and, unlike the other layout specs, did not wait for web fonts (`document.fonts.ready`). A transient fallback-font layout is a _hypothesis_ consistent with a single, non-repeating failure, but it was not shown. As a precaution, not a fix for a proven cause, the large-text tests now wait for fonts before measuring. If it recurs, the next step is to keep the output directory (`--output`) for the first failing run.
+
+### Startup (D-068, D-069)
+
+| Behaviour                                                                                                                              | Verified                                                                        |
+| -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| A status message ("Starting the demo…", `role="status"`, under the page heading) while the worker starts                               | browser test with the worker script held; axe clean (including colour contrast) |
+| The app appears when the start completes                                                                                               | same test                                                                       |
+| A failed start shows the browser-blocked explanation and a Try again button; Try again after the cause is gone recovers; no page error | browser test with the worker script aborted, then released                      |
+| Service workers blocked outright                                                                                                       | the same explanation, Try again fails again with it rather than hanging         |
+| A start slower than 15 s shows "The demo is taking too long to start", with Try again; axe clean                                       | real 15 s wait (test timeout 45 s, separate)                                    |
+| A start that finishes after that message opens the app by itself, once                                                                 | same test                                                                       |
+| Try again after a timeout keeps waiting for the same start: one worker request in total                                                | browser test counting worker script requests                                    |
+| Logic, including an abandoned attempt failing after a retry begins                                                                     | `Startup.test.tsx` (fake timers)                                                |
+
+The 15 s timeout is generous against normal starts (well under a second) and the worst case measured (about 20 s, under 8 parallel Firefox workers; that case is covered by the late-finish handling). Idempotence is in `startMockApi`, so React StrictMode's double effect and retries cannot register two workers.
+
+Manual accessibility gaps are unchanged: a real screen reader (including how the new startup messages are announced), real browser zoom, a real Windows high-contrast theme, Safari and a physical phone.

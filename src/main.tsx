@@ -11,7 +11,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { App } from './app/App';
-import { MockApiError } from './app/MockApiError';
+import { Startup } from './app/Startup';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -30,15 +30,10 @@ async function startApiMocking(): Promise<void> {
   await startMockApi();
 }
 
-startApiMocking().then(
-  () => {
-    root.render(
-      <StrictMode>
-        <App />
-      </StrictMode>,
-    );
-  },
-  () => {
-    root.render(<MockApiError />);
-  },
+root.render(
+  <StrictMode>
+    <Startup start={startApiMocking}>
+      <App />
+    </Startup>
+  </StrictMode>,
 );
