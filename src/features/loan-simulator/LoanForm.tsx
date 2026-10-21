@@ -13,6 +13,7 @@ import styles from './LoanForm.module.css';
 import { EMPLOYMENT_LABELS, FIELDS, PURPOSE_LABELS, type Field } from './model/fields';
 import { formatCents, formatPercent, formatRand } from './model/format';
 import { ProductInfo } from './ProductInfo';
+import { fieldsKey } from './model/validate';
 import { RangeSlider } from './RangeSlider';
 import { amountSliderRange, termSliderRange, type FormRules } from './rules';
 import { SelectField } from './SelectField';
@@ -55,7 +56,9 @@ export function LoanForm({ state, dispatch, rules, isStale, summaryRef }: LoanFo
   const headingId = `${idBase}-heading`;
   const ageRef = useRef<HTMLInputElement>(null);
   const expensesRef = useRef<HTMLInputElement>(null);
-  const pending = state.pending !== null;
+  // Pressing Calculate again is only a duplicate while the same inputs are already in flight;
+  // after an edit it supersedes the earlier request, as pressing Enter in a field does.
+  const pending = state.pending !== null && state.pending.key === fieldsKey(state.values);
 
   const fieldId = (field: Field) => `${idBase}-${field}`;
   const edit = (field: Field) => (text: string) => {

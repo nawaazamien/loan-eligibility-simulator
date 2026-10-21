@@ -310,3 +310,47 @@ describe('the expense helper', () => {
     expect(await screen.findByText(CHANGED)).toBeInTheDocument();
   });
 });
+
+describe('pressing Calculate while a request is pending', () => {
+  it('is a duplicate only while the inputs are unchanged; after an edit it supersedes the request', async () => {
+    let release: () => void = () => undefined;
+    const opened = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let held = 0;
+    server.use(
+      http.post(
+        API_PATHS.eligibility,
+        async () => {
+          held += 1;
+          await opened;
+          return HttpResponse.json({}, { status: 500 });
+        },
+        { once: true },
+      ),
+    );
+    const user = await setup();
+    await user.click(screen.getByRole('button', { name: 'Use example values' }));
+    await user.click(calculate());
+    expect(await screen.findByRole('button', { name: 'Calculating…' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+
+    await user.clear(term());
+    await user.type(term(), '24');
+    const again = screen.getByRole('button', { name: 'Calculate estimate' });
+    expect(again).not.toHaveAttribute('aria-disabled');
+    await user.click(again);
+    expect(await screen.findByText('Estimated monthly payment')).toBeInTheDocument();
+    expect(estimate()).toHaveTextContent('24 months');
+
+    release(); // the first answer (a failure) arrives late and is ignored
+    await waitFor(() => {
+      expect(held).toBe(1);
+    });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.queryByText("We couldn't calculate your estimate.")).not.toBeInTheDocument();
+    expect(estimate()).toHaveTextContent('24 months');
+  });
+});

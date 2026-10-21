@@ -21,6 +21,14 @@ import {
  */
 test.describe('core flow', () => {
   test('renders the page without errors or overflow', async ({ page, browserName }) => {
+    // Record every Content Security Policy violation the browser reports, not just its console text.
+    await page.addInitScript(() => {
+      const seen: { directive: string; blocked: string }[] = [];
+      (window as unknown as { __csp: typeof seen }).__csp = seen;
+      document.addEventListener('securitypolicyviolation', (event) => {
+        seen.push({ directive: event.violatedDirective, blocked: event.blockedURI });
+      });
+    });
     const problems: string[] = [];
     page.on('pageerror', (error) => problems.push(error.message));
     page.on('console', (message) => {
@@ -32,20 +40,46 @@ test.describe('core flow', () => {
     await expect(estimate(page)).toContainText('Enter your details and select Calculate estimate');
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
 
+    const violations = await page.evaluate(
+      () => (window as unknown as { __csp: { directive: string; blocked: string }[] }).__csp,
+    );
     if (browserName === 'webkit') {
-      // WebKit reports its own built-in styling of a native <select> as a CSP violation
-      // ("Refused to apply a stylesheet") once per select, although the page has no inline
-      // style at all and the policy is unchanged. Tolerate exactly that message, no more than
-      // once per <select>; any other console error still fails the test.
+      // WebKit 27.2 (Playwright 1.64.1) reports its own built-in styling of every native
+      // <select> as an inline style-attribute violation, with this console text, although the
+      // page has no style attribute or element and the policy is unchanged. It happens on a
+      // bare page with one <select> and no script at all (docs/validation/phase-6/). Only that
+      // exact message and that exact event, exactly once per <select>, are tolerated; a
+      // different message, directive or count (a real violation) still fails.
       const selects = await page.locator('select').count();
-      const engineNoise = problems.filter((text) =>
-        text.startsWith('Refused to apply a stylesheet'),
+      expect(selects).toBeGreaterThan(0);
+      const engineMessage =
+        "Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive of the Content Security Policy.";
+      expect(problems).toEqual(Array<string>(selects).fill(engineMessage));
+      expect(violations).toEqual(
+        Array<{ directive: string; blocked: string }>(selects).fill({
+          directive: 'style-src-attr',
+          blocked: 'inline',
+        }),
       );
-      expect(engineNoise.length).toBeLessThanOrEqual(selects);
-      expect(problems.filter((text) => !engineNoise.includes(text))).toEqual([]);
+      expect(await page.evaluate(() => document.querySelectorAll('style, [style]').length)).toBe(0);
     } else {
       expect(problems).toEqual([]);
+      expect(violations).toEqual([]);
     }
+  });
+
+  test('the native selects work, by pointer and by keyboard', async ({ page }) => {
+    await openApp(page);
+    const employment = page.getByRole('combobox', { name: /Employment status/ });
+    await employment.selectOption('retired');
+    await expect(employment).toHaveValue('retired');
+    const purpose = page.getByRole('combobox', { name: /Loan purpose/ });
+    await purpose.focus();
+    await page.keyboard.press('ArrowDown');
+    await expect(purpose).not.toHaveValue('');
+    await page.getByRole('button', { name: 'Use example values' }).click();
+    await expect(employment).toHaveValue('employed');
+    await expect(purpose).toHaveValue('home_improvement');
   });
 
   test('calculates through the mocked API and moves focus to the estimate', async ({ page }) => {

@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page } from '@playwright/test';
 
 export interface Entry {
@@ -115,4 +116,18 @@ export async function horizontalOverflow(page: Page): Promise<number> {
   return page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
+}
+
+/** axe over the whole page, WCAG 2.0 to 2.2 A/AA and best practice (including colour contrast). */
+export async function expectNoAxeViolations(page: Page) {
+  const { violations } = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
+    .analyze();
+  expect(
+    violations.map((v) => ({
+      rule: v.id,
+      impact: v.impact,
+      targets: v.nodes.map((n) => n.target.join(' ')),
+    })),
+  ).toEqual([]);
 }

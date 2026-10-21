@@ -20,9 +20,8 @@ import {
  * project (1280, 360 and 320 px). The whole page is scanned: no regions are excluded and no
  * rules are disabled. Passing means axe found no violations in these states; it is one part
  * of the review in docs/validation/phase-3/ACCESSIBILITY_REVIEW.md, not proof of WCAG
- * conformance. States that need a failing API (loading failure, failed calculation, failed
- * schedule) cannot be produced in a browser against the real mock, so they are scanned in
- * src/features/loan-simulator/accessibility.test.tsx.
+ * conformance. The failure states (a failed load, calculation or schedule) are scanned in
+ * e2e/api-failures.spec.ts, which injects the failures; accessibility.test.tsx repeats them in jsdom.
  */
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'];
 

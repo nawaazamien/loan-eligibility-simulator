@@ -100,13 +100,13 @@ Found by the independent calculation in [docs/validation/phase-6/verify_referenc
 
 ## 7. Verification
 
-| Check                                                           | Result and where                                                                                                       |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Contract: all four endpoints over real (intercepted) HTTP       | `src/api/client.test.ts`, 42 tests, shape-checked against the specification's own JSON blocks                          |
-| Independent financial values                                    | `verify_reference.py`; the same figures are asserted in `pricing.test.ts`, `eligibility.test.ts` and the browser tests |
-| Zero interest, first/last row, principal sum, final balance 0   | `pricing.test.ts`                                                                                                      |
-| Minimum / maximum amounts and terms, optional score, boundaries | `client.test.ts`, `validate.test.ts`, `eligibility.test.ts`                                                            |
-| Invalid requests, unsupported product, unknown path             | `client.test.ts`                                                                                                       |
-| UI calls the API through the client                             | `LoanSimulator.test.tsx`; `e2e/estimate.spec.ts`, `e2e/privacy.spec.ts` (requests answered by the worker)              |
-| Loading, failure + retry, pending, duplicate, stale, reset      | `formState.test.ts`, `LoanSimulator.test.tsx`                                                                          |
-| Accessibility of every state                                    | `e2e/a11y.spec.ts` (browser axe), `accessibility.test.tsx` (failure states, jsdom axe)                                 |
+| Check                                                           | Result and where                                                                                                                |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Contract: all four endpoints over real (intercepted) HTTP       | `src/api/client.test.ts`, 42 tests, shape-checked against the specification's own JSON blocks                                   |
+| Independent financial values                                    | `verify_reference.py`; the same figures are asserted in `pricing.test.ts`, `eligibility.test.ts` and the browser tests          |
+| Zero interest, first/last row, principal sum, final balance 0   | `pricing.test.ts`                                                                                                               |
+| Minimum / maximum amounts and terms, optional score, boundaries | `client.test.ts`, `validate.test.ts`, `eligibility.test.ts`                                                                     |
+| Invalid requests, unsupported product, unknown path             | `client.test.ts`                                                                                                                |
+| UI calls the API through the client                             | `LoanSimulator.test.tsx`; `e2e/estimate.spec.ts`, `e2e/privacy.spec.ts` (requests answered by the worker)                       |
+| Loading, failure + retry, pending, duplicate, stale, reset      | `formState.test.ts`, `LoanSimulator.test.tsx`                                                                                   |
+| Accessibility of every state                                    | `e2e/a11y.spec.ts` and `e2e/api-failures.spec.ts` (browser axe, including failure states), `accessibility.test.tsx` (jsdom axe) |

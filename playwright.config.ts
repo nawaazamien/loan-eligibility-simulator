@@ -10,6 +10,10 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
+  // The in-browser mock API starts a service worker before the page renders; under heavy
+  // parallel load (several browsers at once) that start was measured taking up to ~20 s, so
+  // assertions wait longer than Playwright's 5 s default. Real failures still fail, only later.
+  expect: { timeout: 20_000 },
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
